@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KeyMaster Harmony Trainer
 
-## Getting Started
+음악 화성학(키, 조표, 다이어토닉 코드, 코드 진행, 코드톤)을 반복 훈련하는 웹 기반 퀴즈 앱.
 
-First, run the development server:
+## 실행 방법
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 `http://localhost:3000` 접속.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 지원 퀴즈 모드
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 모드 | 이름 | 설명 |
+|------|------|------|
+| 1 | 진행 코드톤 | 숫자 진행(예: 2-5-1)을 보고 코드명과 구성음 맞히기 |
+| 2 | 진행 분석 | 코드 진행을 보고 도수 진행 맞히기 |
+| 3 | 도수 음 | 특정 키에서 특정 도수의 음 맞히기 |
+| 4 | 도수 코드 | 특정 키에서 특정 도수의 7화음 코드 맞히기 |
+| 5 | 조표 암기 | 키의 조표, 스케일, 조표 개수 훈련 |
 
-## Learn More
+## 지원 키
 
-To learn more about Next.js, take a look at the following resources:
+| 분류 | 키 |
+|------|----|
+| 조표 없음 | C |
+| 플랫 키 | F, Bb, Eb, Ab |
+| 샵 키 | G, D, A, E |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 출제 범위 선택
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **전체 키**: 9개 모든 키
+- **플랫 키 집중**: Bb, Eb, Ab
+- **샵 키 집중**: G, D, A, E
+- **직접 선택**: 원하는 키 체크박스로 선택
 
-## Deploy on Vercel
+## 점수 규칙
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| 상황 | 점수 |
+|------|------|
+| 정답 (힌트 미사용) | +10 |
+| 정답 (힌트 사용) | +5 |
+| 오답 | 0, 연속 정답 초기화 |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+점수와 최고 점수는 localStorage에 자동 저장됩니다.
+
+## 정답 입력 규칙
+
+- 음 이름 대소문자 무시: `bb` = `Bb`, `f#` = `F#`
+- 구분자: 공백, 쉼표, 하이픈 모두 허용 (`C Eb G Bb` = `C,Eb,G,Bb` = `C-Eb-G-Bb`)
+- C major 조표 정답: `없음`, `0`, `0개`, `none` 모두 인정
+- 키 이름: `Bb`, `Bb major`, `B flat` 모두 인정
+
+## 기술 스택
+
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- localStorage (점수/설정 저장)
+
+## 향후 확장 아이디어
+
+- minor key 추가
+- secondary dominant 훈련
+- modal interchange 훈련
+- 피아노 키보드 UI
+- 코드 사운드 재생
+- 약점 자동 복습 기능
+- 타임어택 모드
