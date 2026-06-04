@@ -34,12 +34,12 @@ function save(key: string, value: unknown): void {
 }
 
 export default function App() {
-  const [currentScore, setCurrentScore] = useState(() => load<number>(LS.currentScore, 0))
-  const [bestScore,    setBestScore]    = useState(() => load<number>(LS.bestScore, 0))
-  const [streak,       setStreak]       = useState(() => load<number>(LS.streak, 0))
-  const [keyGroup,     setKeyGroup]     = useState<KeyGroup>(() => load<KeyGroup>(LS.selectedKeyGroup, 'all'))
-  const [customKeys,   setCustomKeys]   = useState<string[]>(() => load<string[]>(LS.customSelectedKeys, []))
-  const [quizMode,     setQuizMode]     = useState<QuizMode>(() => load<QuizMode>(LS.selectedQuizMode, 1))
+  const [currentScore, setCurrentScore] = useState(0)
+  const [bestScore,    setBestScore]    = useState(0)
+  const [streak,       setStreak]       = useState(0)
+  const [keyGroup,     setKeyGroup]     = useState<KeyGroup>('all')
+  const [customKeys,   setCustomKeys]   = useState<string[]>([])
+  const [quizMode,     setQuizMode]     = useState<QuizMode>(1)
   const [question,     setQuestion]     = useState<Question | null>(null)
   const [result,       setResult]       = useState<QuizResult | null>(null)
   const [hintUsed,     setHintUsed]     = useState(false)
@@ -64,11 +64,22 @@ export default function App() {
     setHintUsed(false)
   }, [getActiveKeys])
 
-  // Generate initial question on mount only
+  // Load all persisted state + generate initial question on mount only
   useEffect(() => {
-    const savedMode = load<QuizMode>(LS.selectedQuizMode, 1)
-    const savedGroup = load<KeyGroup>(LS.selectedKeyGroup, 'all')
-    const savedCustom = load<string[]>(LS.customSelectedKeys, [])
+    const savedScore   = load<number>(LS.currentScore, 0)
+    const savedBest    = load<number>(LS.bestScore, 0)
+    const savedStreak  = load<number>(LS.streak, 0)
+    const savedMode    = load<QuizMode>(LS.selectedQuizMode, 1)
+    const savedGroup   = load<KeyGroup>(LS.selectedKeyGroup, 'all')
+    const savedCustom  = load<string[]>(LS.customSelectedKeys, [])
+
+    setCurrentScore(savedScore)
+    setBestScore(savedBest)
+    setStreak(savedStreak)
+    setQuizMode(savedMode)
+    setKeyGroup(savedGroup)
+    setCustomKeys(savedCustom)
+
     const keys =
       savedGroup === 'custom'
         ? (savedCustom.length > 0 ? savedCustom : KEY_GROUPS.all)
