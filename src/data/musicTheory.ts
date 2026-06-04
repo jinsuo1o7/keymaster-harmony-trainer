@@ -18,12 +18,9 @@ export const DIATONIC_7TH_QUALITIES = [
 ] as const
 
 export const COMMON_PROGRESSIONS: number[][] = [
-  [2, 5, 1],
   [2, 5, 1, 6],
-  [1, 6, 2, 5],
-  [6, 2, 5, 1],
-  [4, 5, 3, 6],
-  [1, 4, 5, 1],
+  [2, 6, 2, 5],
+  [1, 4, 5, 3],
 ]
 
 // Index 0 unused; index 1–7 = degrees 1–7
