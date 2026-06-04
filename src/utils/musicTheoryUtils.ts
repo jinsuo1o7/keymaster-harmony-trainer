@@ -87,13 +87,13 @@ export function generateProgressionQuestion(key: string): Question {
   }))
   const progressionText = progression.join(' - ')
   const answerLines = chordAnswers
-    .map(ca => `${ca.degree} = ${ca.chordName} = ${ca.tones.join(' ')}`)
+    .map(ca => `${ca.degree} = ${ca.chordName}`)
     .join('\n')
 
   return {
     mode: 1,
     key,
-    text: `${key} key에서 ${progressionText} 진행의 코드와 구성음을 적어주세요.`,
+    text: `${key} key에서 ${progressionText} 진행의 코드명을 적어주세요.`,
     hint: `먼저 ${key} major scale을 떠올려보세요: ${scale.join(' ')}`,
     explanation: `${key} major scale은 ${scale.join(' ')}입니다.\n\n${answerLines}`,
     chordAnswers,

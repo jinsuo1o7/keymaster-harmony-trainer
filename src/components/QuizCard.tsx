@@ -1,10 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
-import type { Question, QuizResult, ChordAnswer } from '@/src/types/quiz'
+import type { Question, QuizResult } from '@/src/types/quiz'
 import {
   validateDegreeAnswer,
   validateChordAnswer,
-  validateChordToneAnswer,
   validateProgressionAnswer,
   validateAccidentalsAnswer,
   validateAccidentalCountAnswer,
@@ -30,14 +29,14 @@ export default function QuizCard({
   onNext,
 }: QuizCardProps) {
   const [userInput, setUserInput] = useState('')
-  const [mode1Inputs, setMode1Inputs] = useState<{ chordName: string; tones: string }[]>([])
+  const [mode1Inputs, setMode1Inputs] = useState<string[]>([])
   const [showHint, setShowHint] = useState(false)
 
   useEffect(() => {
     setUserInput('')
     setShowHint(false)
     if (question.chordAnswers) {
-      setMode1Inputs(question.chordAnswers.map(() => ({ chordName: '', tones: '' })))
+      setMode1Inputs(question.chordAnswers.map(() => ''))
     }
   }, [question])
 
@@ -50,13 +49,9 @@ export default function QuizCard({
     const expl = question.explanation
 
     if (question.mode === 1 && question.chordAnswers) {
-      const allCorrect = mode1Inputs.every((input, i) => {
-        const ca: ChordAnswer = question.chordAnswers![i]
-        return (
-          validateChordAnswer(input.chordName, ca.chordName) &&
-          validateChordToneAnswer(input.tones, ca.tones)
-        )
-      })
+      const allCorrect = mode1Inputs.every((input, i) =>
+        validateChordAnswer(input, question.chordAnswers![i].chordName)
+      )
       return { correct: allCorrect, explanation: expl }
     }
 
@@ -100,10 +95,10 @@ export default function QuizCard({
     onAnswer(correct, explanation)
   }
 
-  function handleMode1Change(idx: number, field: 'chordName' | 'tones', value: string) {
+  function handleMode1Change(idx: number, value: string) {
     setMode1Inputs(prev => {
       const next = [...prev]
-      next[idx] = { ...next[idx], [field]: value }
+      next[idx] = value
       return next
     })
   }
@@ -133,27 +128,19 @@ export default function QuizCard({
         </div>
       )}
 
-      {/* Mode 1: multiple chord inputs */}
+      {/* Mode 1: chord name per degree */}
       {question.mode === 1 && question.chordAnswers && (
         <div className="space-y-2">
           {question.chordAnswers.map((ca, i) => (
-            <div key={i} className="flex gap-2 items-center">
+            <div key={i} className="flex gap-3 items-center">
               <span className="text-gray-400 text-sm w-4 shrink-0 text-center">{ca.degree}</span>
               <input
                 type="text"
                 placeholder="코드명 (예: Cm7)"
-                value={mode1Inputs[i]?.chordName ?? ''}
-                onChange={e => handleMode1Change(i, 'chordName', e.target.value)}
+                value={mode1Inputs[i] ?? ''}
+                onChange={e => handleMode1Change(i, e.target.value)}
                 disabled={answered}
-                className="w-28 bg-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
-              />
-              <input
-                type="text"
-                placeholder="구성음 (예: C Eb G Bb)"
-                value={mode1Inputs[i]?.tones ?? ''}
-                onChange={e => handleMode1Change(i, 'tones', e.target.value)}
-                disabled={answered}
-                className="flex-1 min-w-0 bg-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+                className="flex-1 bg-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
               />
             </div>
           ))}
