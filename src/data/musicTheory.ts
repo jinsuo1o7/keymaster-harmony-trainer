@@ -19,7 +19,7 @@ export const DIATONIC_7TH_QUALITIES = [
 
 export const COMMON_PROGRESSIONS: number[][] = [
   [2, 5, 1, 6],
-  [2, 6, 2, 5],
+  [3, 6, 2, 5],
   [1, 4, 5, 3],
 ]
 
