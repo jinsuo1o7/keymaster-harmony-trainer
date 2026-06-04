@@ -25,3 +25,51 @@ export interface QuizResult {
   correct: boolean
   explanation: string
 }
+
+// ─── Tutorial types ───────────────────────────────────────────────────────
+
+export type TutorialQuestionType =
+  | 'flatOrder' | 'sharpOrder' | 'orderPosition'
+  | 'keyAccidentals' | 'accidentalCount' | 'keyFromSignature'
+  | 'fullScale' | 'scalePosition'
+  | 'degreeNote'
+  | 'chordTypeByDegree' | 'progressionChordTypes'
+  | 'degreeChord'
+  | 'numericToChord'
+  | 'chordToNumeric'
+
+export interface TutorialQuestion {
+  levelId: number
+  questionType: TutorialQuestionType
+  text: string
+  hint: string
+  explanation: string
+  key?: string
+  degree?: number
+  progression?: number[]
+  answer?: string
+  answerList?: string[]
+  answerCount?: number
+  answerDegrees?: number[]
+}
+
+export interface TutorialLesson {
+  id: number
+  title: string
+  shortDescription: string
+  learningGoal: string
+  explanation: string
+  memoryFormula: string
+  examples: string[]
+  totalQuestions: number
+  passingScore: number
+  relatedQuizMode: number | null
+}
+
+export interface TutorialProgress {
+  unlockedLevel: number
+  completedLevels: number[]
+  scores: Record<number, number>
+  lastLevel: number | null
+  completed: boolean
+}

@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import type { QuizMode, KeyGroup, Question, QuizResult } from '@/src/types/quiz'
+import type { QuizMode, KeyGroup, Question, QuizResult, TutorialProgress } from '@/src/types/quiz'
 import { generateQuestion } from '@/src/utils/musicTheoryUtils'
+import { loadTutorialProgress, saveTutorialProgress } from '@/src/utils/tutorialUtils'
 import { KEY_GROUPS } from '@/src/data/musicTheory'
 import Header from '@/src/components/Header'
 import KeyRangeSelector from '@/src/components/KeyRangeSelector'
@@ -9,6 +10,8 @@ import ModeSelector from '@/src/components/ModeSelector'
 import QuizCard from '@/src/components/QuizCard'
 import ResultPanel from '@/src/components/ResultPanel'
 import StudyPanel from '@/src/components/StudyPanel'
+import TutorialHome from '@/src/components/TutorialHome'
+import TutorialLevel from '@/src/components/TutorialLevel'
 
 const LS = {
   currentScore:      'keymaster_currentScore',
@@ -34,6 +37,12 @@ function save(key: string, value: unknown): void {
 }
 
 export default function App() {
+  const [activeTab,    setActiveTab]    = useState<'quiz' | 'tutorial'>('quiz')
+  const [tutorialLevel, setTutorialLevel] = useState<number | null>(null)
+  const [tutorialProgress, setTutorialProgress] = useState<TutorialProgress>({
+    unlockedLevel: 1, completedLevels: [], scores: {}, lastLevel: null, completed: false,
+  })
+
   const [currentScore, setCurrentScore] = useState(0)
   const [bestScore,    setBestScore]    = useState(0)
   const [streak,       setStreak]       = useState(0)
@@ -64,7 +73,7 @@ export default function App() {
     setHintUsed(false)
   }, [getActiveKeys])
 
-  // Load all persisted state + generate initial question on mount only
+  // Load all persisted state on mount only
   useEffect(() => {
     const savedScore   = load<number>(LS.currentScore, 0)
     const savedBest    = load<number>(LS.bestScore, 0)
@@ -79,6 +88,7 @@ export default function App() {
     setQuizMode(savedMode)
     setKeyGroup(savedGroup)
     setCustomKeys(savedCustom)
+    setTutorialProgress(loadTutorialProgress())
 
     const keys =
       savedGroup === 'custom'
@@ -100,6 +110,15 @@ export default function App() {
     setResult({ correct, explanation })
   }
 
+  function handleTutorialComplete(
+    levelId: number,
+    correctCount: number,
+    newProgress: TutorialProgress,
+  ) {
+    setTutorialProgress(newProgress)
+    saveTutorialProgress(newProgress)
+  }
+
   function handleModeChange(mode: QuizMode) {
     setQuizMode(mode)
     loadNextQuestion(mode)
@@ -112,33 +131,79 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4 pb-12">
-        <Header
-          currentScore={currentScore}
-          bestScore={bestScore}
-          streak={streak}
-        />
-        <KeyRangeSelector
-          selectedGroup={keyGroup}
-          customKeys={customKeys}
-          onGroupChange={handleKeyGroupChange}
-          onCustomKeysChange={setCustomKeys}
-        />
-        <ModeSelector
-          selectedMode={quizMode}
-          onModeChange={handleModeChange}
-        />
-        {question && (
+        <Header currentScore={currentScore} bestScore={bestScore} streak={streak} />
+
+        {/* Tab bar */}
+        <div className="flex gap-1 bg-gray-800 rounded-xl p-1">
+          <button
+            onClick={() => setActiveTab('quiz')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'quiz' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            퀴즈 모드
+          </button>
+          <button
+            onClick={() => { setActiveTab('tutorial'); setTutorialLevel(null) }}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'tutorial' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            튜토리얼
+            {tutorialProgress.completedLevels.length > 0 && !tutorialProgress.completed && (
+              <span className="ml-1.5 text-xs bg-indigo-700 text-indigo-200 px-1.5 py-0.5 rounded-full">
+                {tutorialProgress.completedLevels.length}/8
+              </span>
+            )}
+            {tutorialProgress.completed && (
+              <span className="ml-1.5 text-xs">✓</span>
+            )}
+          </button>
+        </div>
+
+        {/* Quiz tab */}
+        {activeTab === 'quiz' && (
           <>
-            <QuizCard
-              question={question}
-              result={result}
-              hintUsed={hintUsed}
-              onHint={() => setHintUsed(true)}
-              onAnswer={handleAnswer}
-              onNext={() => loadNextQuestion(quizMode)}
+            <KeyRangeSelector
+              selectedGroup={keyGroup}
+              customKeys={customKeys}
+              onGroupChange={handleKeyGroupChange}
+              onCustomKeysChange={setCustomKeys}
             />
-            {result && <ResultPanel result={result} />}
-            <StudyPanel questionKey={question.key} />
+            <ModeSelector selectedMode={quizMode} onModeChange={handleModeChange} />
+            {question && (
+              <>
+                <QuizCard
+                  question={question}
+                  result={result}
+                  hintUsed={hintUsed}
+                  onHint={() => setHintUsed(true)}
+                  onAnswer={handleAnswer}
+                  onNext={() => loadNextQuestion(quizMode)}
+                />
+                {result && <ResultPanel result={result} />}
+                <StudyPanel questionKey={question.key} />
+              </>
+            )}
+          </>
+        )}
+
+        {/* Tutorial tab */}
+        {activeTab === 'tutorial' && (
+          <>
+            {tutorialLevel === null ? (
+              <TutorialHome
+                progress={tutorialProgress}
+                onSelectLevel={setTutorialLevel}
+              />
+            ) : (
+              <TutorialLevel
+                levelId={tutorialLevel}
+                progress={tutorialProgress}
+                onComplete={handleTutorialComplete}
+                onBack={() => setTutorialLevel(null)}
+              />
+            )}
           </>
         )}
       </div>
