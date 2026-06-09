@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - heading "🎹 KeyMaster" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Harmony Trainer
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: 점수
+          - generic [ref=e11]: "0"
+        - generic [ref=e12]:
+          - generic [ref=e13]: 최고
+          - generic [ref=e14]: "0"
+        - generic [ref=e15]:
+          - generic [ref=e16]: 연속
+          - generic [ref=e17]: "0"
+    - generic [ref=e18]:
+      - button "퀴즈 모드" [ref=e19]
+      - button "튜토리얼" [ref=e20]
+    - generic [ref=e159]:
+      - generic [ref=e160]:
+        - button "← 목록" [ref=e161]
+        - generic [ref=e163]:
+          - generic [ref=e164]: Level 1
+          - heading "조표 순서 외우기" [level=2] [ref=e165]
+      - generic [ref=e266]:
+        - generic [ref=e267]:
+          - generic [ref=e268]: 🎯
+          - paragraph [ref=e269]: 레벨 통과!
+          - paragraph [ref=e270]: "다음 레벨 해금: 각 key의 조표 외우기"
+        - generic [ref=e271]:
+          - generic [ref=e272]:
+            - generic [ref=e273]: 맞힌 수
+            - generic [ref=e274]: 5/5
+          - generic [ref=e275]:
+            - generic [ref=e276]: 정답률
+            - generic [ref=e277]: 100%
+          - generic [ref=e278]:
+            - generic [ref=e279]: 기준
+            - generic [ref=e280]: 4/5
+        - generic [ref=e281]:
+          - button "다음 레벨로 →" [ref=e282]
+          - button "다시 연습하기" [ref=e283]
+          - button "← 튜토리얼 목록" [ref=e284]
+  - button "Open Next.js Dev Tools" [ref=e85] [cursor=pointer]:
+    - img [ref=e86]
+  - alert [ref=e89]

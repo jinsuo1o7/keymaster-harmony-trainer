@@ -99,9 +99,9 @@ function makeKeyAccidentalsQ(key: string): TutorialQuestion {
   }
   return {
     levelId: 2, questionType: 'keyAccidentals', key,
-    text: `${key} major key에는 어떤 ${accType}이 붙나요?`,
-    hint: `${accType === 'flat' ? 'Flat' : 'Sharp'} 순서를 떠올려보세요.`,
-    explanation: `${key} major는 ${accType}이 ${count}개 붙습니다.\n정답: ${sig.join(', ')}`,
+    text: `${key} major key에는 어떤 조표가 붙나요?`,
+    hint: `조표 순서를 떠올려보세요.`,
+    explanation: `${key} major는 조표가 ${count}개 붙습니다.\n정답: ${sig.join(', ')}`,
     answerList: sig,
   }
 }
@@ -282,16 +282,7 @@ function buildLevel1Qs(): TutorialQuestion[] {
 
 function buildLevel2Qs(): TutorialQuestion[] {
   const keys = shuffle([...TUTORIAL_KEYS] as string[])
-  const qs: TutorialQuestion[] = [
-    makeKeyAccidentalsQ(keys[0]),
-    makeKeyAccidentalsQ(keys[1]),
-    makeKeyAccidentalsQ(keys[2]),
-    makeAccidentalCountQ(keys[3]),
-    makeAccidentalCountQ(keys[4]),
-    makeAccidentalCountQ(keys[5]),
-    makeKeyFromSignatureQ(keys[6]),
-    makeKeyFromSignatureQ(shuffle([...TUTORIAL_KEYS] as string[])[0]),
-  ]
+  const qs: TutorialQuestion[] = keys.map(makeKeyAccidentalsQ)
   return shuffle(qs)
 }
 

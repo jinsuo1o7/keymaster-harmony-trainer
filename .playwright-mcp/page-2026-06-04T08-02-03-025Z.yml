@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - heading "🎹 KeyMaster" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Harmony Trainer
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: 점수
+          - generic [ref=e11]: "0"
+        - generic [ref=e12]:
+          - generic [ref=e13]: 최고
+          - generic [ref=e14]: "0"
+        - generic [ref=e15]:
+          - generic [ref=e16]: 연속
+          - generic [ref=e17]: "0"
+    - generic [ref=e18]:
+      - button "퀴즈 모드" [ref=e19]
+      - button "튜토리얼" [ref=e20]
+    - generic [ref=e159]:
+      - generic [ref=e160]:
+        - button "← 목록" [ref=e161]
+        - generic [ref=e163]:
+          - generic [ref=e164]: Level 1
+          - heading "조표 순서 외우기" [level=2] [ref=e165]
+      - generic [ref=e166]:
+        - generic [ref=e167]:
+          - heading "학습 내용" [level=3] [ref=e168]
+          - paragraph [ref=e169]: Flat과 Sharp은 key마다 아무렇게나 붙는 것이 아니라 정해진 순서대로 누적됩니다. Flat key는 다음 순서로 flat이 붙습니다. Bb → Eb → Ab → Db 예) F major = Bb Bb major = Bb, Eb Eb major = Bb, Eb, Ab Sharp key는 다음 순서로 sharp이 붙습니다. F# → C# → G# → D# 예) G major = F# D major = F#, C# A major = F#, C#, G#
+        - generic [ref=e170]:
+          - heading "핵심 공식" [level=3] [ref=e171]
+          - paragraph [ref=e172]: "Flat 순서: Bb → Eb → Ab → Db Sharp 순서: F# → C# → G# → D#"
+        - generic [ref=e173]:
+          - heading "예시" [level=3] [ref=e174]
+          - list [ref=e175]:
+            - listitem [ref=e176]:
+              - generic [ref=e177]: ▸
+              - generic [ref=e178]: Bb major → flat 2개 → Bb, Eb (flat 순서 앞 2개)
+            - listitem [ref=e179]:
+              - generic [ref=e180]: ▸
+              - generic [ref=e181]: A major → sharp 3개 → F#, C#, G# (sharp 순서 앞 3개)
+        - paragraph [ref=e183]: "목표: Flat 순서 Bb→Eb→Ab→Db와 Sharp 순서 F#→C#→G#→D#를 암기합니다."
+        - button "연습 시작 →" [ref=e184]
+      - generic [ref=e185]: "통과 조건: 5문제 중 4개 이상 정답"
+  - button "Open Next.js Dev Tools" [ref=e85] [cursor=pointer]:
+    - img [ref=e86]
+  - alert [ref=e89]

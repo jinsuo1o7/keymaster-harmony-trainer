@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - heading "🎹 KeyMaster" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Harmony Trainer
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: 점수
+          - generic [ref=e11]: "0"
+        - generic [ref=e12]:
+          - generic [ref=e13]: 최고
+          - generic [ref=e14]: "0"
+        - generic [ref=e15]:
+          - generic [ref=e16]: 연속
+          - generic [ref=e17]: "0"
+    - generic [ref=e18]:
+      - button "퀴즈 모드" [ref=e19]
+      - button "튜토리얼" [ref=e20]
+    - generic [ref=e159]:
+      - generic [ref=e160]:
+        - button "← 목록" [ref=e161]
+        - generic [ref=e163]:
+          - generic [ref=e164]: Level 1
+          - heading "조표 순서 외우기" [level=2] [ref=e165]
+        - generic [ref=e186]: 2/5
+      - generic [ref=e202]:
+        - generic [ref=e203]:
+          - generic [ref=e204]: 문제 2 / 5
+          - generic [ref=e205]:
+            - text: "맞힌 수: 2 /"
+            - generic [ref=e206]: 4개 이상 통과
+        - generic [ref=e209]: "Sharp이 붙는 순서대로 입력하세요. (예: F# C# G# D#)"
+        - generic [ref=e214]:
+          - generic [ref=e215]: ✓ 정답!
+          - paragraph [ref=e216]: "Sharp key에서 sharp은 F# → C# → G# → D# 순서로 붙습니다. 정답: F# C# G# D#"
+        - button "다음 문제 →" [ref=e217]
+  - button "Open Next.js Dev Tools" [ref=e85] [cursor=pointer]:
+    - img [ref=e86]
+  - alert [ref=e89]

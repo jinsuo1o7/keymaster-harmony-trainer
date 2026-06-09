@@ -133,7 +133,10 @@ export function validateAccidentalsAnswer(
   const parsed = parseNoteList(userAnswer)
   if (parsed.length !== correctAccidentals.length) return false
   const normalized = correctAccidentals.map(normalizeNote)
-  return parsed.every((n, i) => n === normalized[i])
+  return (
+    parsed.every(n => normalized.includes(n)) &&
+    normalized.every(n => parsed.includes(n))
+  )
 }
 
 /** Validate mode 5 type B: count of accidentals. */

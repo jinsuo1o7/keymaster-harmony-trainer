@@ -1,0 +1,40 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - heading "🎹 KeyMaster" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Harmony Trainer
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: 점수
+          - generic [ref=e11]: "0"
+        - generic [ref=e12]:
+          - generic [ref=e13]: 최고
+          - generic [ref=e14]: "0"
+        - generic [ref=e15]:
+          - generic [ref=e16]: 연속
+          - generic [ref=e17]: "0"
+    - generic [ref=e18]:
+      - button "퀴즈 모드" [ref=e19]
+      - button "튜토리얼" [ref=e20]
+    - generic [ref=e159]:
+      - generic [ref=e160]:
+        - button "← 목록" [ref=e161]
+        - generic [ref=e163]:
+          - generic [ref=e164]: Level 1
+          - heading "조표 순서 외우기" [level=2] [ref=e165]
+        - generic [ref=e186]: 1/5
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - generic [ref=e189]: 문제 1 / 5
+          - generic [ref=e190]:
+            - text: "맞힌 수: 0 /"
+            - generic [ref=e191]: 4개 이상 통과
+        - generic [ref=e193]: "Flat이 붙는 순서대로 입력하세요. (예: Bb Eb Ab Db)"
+        - textbox "답을 입력하세요" [active] [ref=e194]
+        - generic [ref=e195]:
+          - button "제출" [ref=e196]
+          - button "힌트" [ref=e197]
+  - button "Open Next.js Dev Tools" [ref=e85] [cursor=pointer]:
+    - img [ref=e86]
+  - alert [ref=e89]

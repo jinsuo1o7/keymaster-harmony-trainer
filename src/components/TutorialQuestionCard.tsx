@@ -32,6 +32,15 @@ export default function TutorialQuestionCard({
     setHintShown(false)
   }, [question])
 
+  useEffect(() => {
+    if (result === null) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Enter') onNext()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [result, onNext])
+
   function handleSubmit() {
     if (result !== null) return
     const correct = validateTutorialAnswer(question, userInput)

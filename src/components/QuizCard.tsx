@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Question, QuizResult } from '@/src/types/quiz'
 import {
   validateDegreeAnswer,
@@ -31,14 +31,28 @@ export default function QuizCard({
   const [userInput, setUserInput] = useState('')
   const [mode1Inputs, setMode1Inputs] = useState<string[]>([])
   const [showHint, setShowHint] = useState(false)
+  const mode1Refs = useRef<(HTMLInputElement | null)[]>([])
+  const singleInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     setUserInput('')
     setShowHint(false)
     if (question.chordAnswers) {
       setMode1Inputs(question.chordAnswers.map(() => ''))
+      setTimeout(() => mode1Refs.current[0]?.focus(), 0)
+    } else {
+      setTimeout(() => singleInputRef.current?.focus(), 0)
     }
   }, [question])
+
+  useEffect(() => {
+    if (!result) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Enter') onNext()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [result, onNext])
 
   function handleHint() {
     setShowHint(true)
@@ -96,11 +110,38 @@ export default function QuizCard({
   }
 
   function handleMode1Change(idx: number, value: string) {
+    const total = question.chordAnswers?.length ?? 0
+    if (value.endsWith(' ') && value.trim() !== '') {
+      setMode1Inputs(prev => {
+        const next = [...prev]
+        next[idx] = value.trim()
+        return next
+      })
+      if (idx < total - 1) {
+        mode1Refs.current[idx + 1]?.focus()
+      }
+      return
+    }
     setMode1Inputs(prev => {
       const next = [...prev]
       next[idx] = value
       return next
     })
+  }
+
+  function handleMode1KeyDown(e: React.KeyboardEvent<HTMLInputElement>, idx: number) {
+    const total = question.chordAnswers?.length ?? 0
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (idx < total - 1) {
+        mode1Refs.current[idx + 1]?.focus()
+      } else if (!answered) {
+        handleSubmit()
+      }
+    }
+    if (e.key === 'Backspace' && mode1Inputs[idx] === '' && idx > 0) {
+      mode1Refs.current[idx - 1]?.focus()
+    }
   }
 
   const answered = result !== null
@@ -130,18 +171,20 @@ export default function QuizCard({
 
       {/* Mode 1: chord name per degree */}
       {question.mode === 1 && question.chordAnswers && (
-        <div className="space-y-2">
+        <div className="flex gap-3 justify-center flex-wrap">
           {question.chordAnswers.map((ca, i) => (
-            <div key={i} className="flex gap-3 items-center">
-              <span className="text-gray-400 text-sm w-4 shrink-0 text-center">{ca.degree}</span>
+            <div key={i} className="flex flex-col items-center gap-1.5">
               <input
+                ref={el => { mode1Refs.current[i] = el }}
                 type="text"
-                placeholder="코드명 (예: Cm7)"
+                placeholder="?"
                 value={mode1Inputs[i] ?? ''}
                 onChange={e => handleMode1Change(i, e.target.value)}
+                onKeyDown={e => handleMode1KeyDown(e, i)}
                 disabled={answered}
-                className="flex-1 bg-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+                className="w-16 h-16 bg-gray-700 rounded-xl text-center text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
               />
+              <span className="text-gray-400 text-xs font-mono">{ca.degree}</span>
             </div>
           ))}
         </div>
@@ -150,6 +193,7 @@ export default function QuizCard({
       {/* Other modes: single input */}
       {question.mode !== 1 && (
         <input
+          ref={singleInputRef}
           type="text"
           placeholder="답을 입력하세요"
           value={userInput}

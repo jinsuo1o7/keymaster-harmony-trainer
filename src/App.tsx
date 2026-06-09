@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { QuizMode, KeyGroup, Question, QuizResult, TutorialProgress } from '@/src/types/quiz'
 import { generateQuestion } from '@/src/utils/musicTheoryUtils'
 import { loadTutorialProgress, saveTutorialProgress } from '@/src/utils/tutorialUtils'
@@ -67,8 +67,16 @@ export default function App() {
     return KEY_GROUPS[keyGroup] ?? KEY_GROUPS.all
   }, [keyGroup, customKeys])
 
+  const lastQuestionText = useRef<string>('')
+
   const loadNextQuestion = useCallback((mode: QuizMode) => {
-    setQuestion(generateQuestion(mode, getActiveKeys()))
+    const keys = getActiveKeys()
+    let next = generateQuestion(mode, keys)
+    if (next.text === lastQuestionText.current) {
+      next = generateQuestion(mode, keys)
+    }
+    lastQuestionText.current = next.text
+    setQuestion(next)
     setResult(null)
     setHintUsed(false)
   }, [getActiveKeys])

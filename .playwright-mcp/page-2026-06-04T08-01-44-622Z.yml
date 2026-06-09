@@ -1,0 +1,86 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - heading "🎹 KeyMaster" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Harmony Trainer
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: 점수
+          - generic [ref=e11]: "0"
+        - generic [ref=e12]:
+          - generic [ref=e13]: 최고
+          - generic [ref=e14]: "0"
+        - generic [ref=e15]:
+          - generic [ref=e16]: 연속
+          - generic [ref=e17]: "0"
+    - generic [ref=e18]:
+      - button "퀴즈 모드" [ref=e19]
+      - button "튜토리얼" [active] [ref=e20]
+    - generic [ref=e90]:
+      - generic [ref=e91]:
+        - heading "학습 로드맵" [level=2] [ref=e92]
+        - paragraph [ref=e93]:
+          - text: 순서대로 따라가면 어떤 major key에서도
+          - text: Key + 도수 = 음 → 음 + 타입 = 코드를
+          - text: 자동으로 떠올릴 수 있게 됩니다.
+      - generic [ref=e94]:
+        - button "1 조표 순서 외우기 진행중 Flat과 Sharp이 붙는 정해진 순서를 외웁니다. 미시작 기준 4개" [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e97]: "1"
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - generic [ref=e100]: 조표 순서 외우기
+                - generic [ref=e101]: 진행중
+              - paragraph [ref=e102]: Flat과 Sharp이 붙는 정해진 순서를 외웁니다.
+            - generic [ref=e103]:
+              - text: 미시작
+              - generic [ref=e104]: 기준 4개
+        - button "🔒 각 key의 조표 외우기 각 major key에 어떤 조표가 붙는지 외웁니다." [disabled] [ref=e105]:
+          - generic [ref=e106]:
+            - generic [ref=e107]: 🔒
+            - generic [ref=e108]:
+              - generic [ref=e110]: 각 key의 조표 외우기
+              - paragraph [ref=e111]: 각 major key에 어떤 조표가 붙는지 외웁니다.
+        - button "🔒 Major scale 외우기 각 major key의 스케일 음을 순서대로 외웁니다." [disabled] [ref=e112]:
+          - generic [ref=e113]:
+            - generic [ref=e114]: 🔒
+            - generic [ref=e115]:
+              - generic [ref=e117]: Major scale 외우기
+              - paragraph [ref=e118]: 각 major key의 스케일 음을 순서대로 외웁니다.
+        - button "🔒 Key 안에서 x도 음 맞히기 어떤 major key에서 x도가 무엇인지 바로 떠올립니다." [disabled] [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]: 🔒
+            - generic [ref=e122]:
+              - generic [ref=e124]: Key 안에서 x도 음 맞히기
+              - paragraph [ref=e125]: 어떤 major key에서 x도가 무엇인지 바로 떠올립니다.
+        - button "🔒 다이어토닉 7화음 타입 패턴 1,4=maj7 | 2,3,6=m7 | 5=7 | 7=m7b5 패턴을 외웁니다." [disabled] [ref=e126]:
+          - generic [ref=e127]:
+            - generic [ref=e128]: 🔒
+            - generic [ref=e129]:
+              - generic [ref=e131]: 다이어토닉 7화음 타입 패턴
+              - paragraph [ref=e132]: 1,4=maj7 | 2,3,6=m7 | 5=7 | 7=m7b5 패턴을 외웁니다.
+        - button "🔒 x도 코드를 만들기 도수 음과 코드 타입을 합쳐 다이어토닉 7화음을 만듭니다." [disabled] [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]: 🔒
+            - generic [ref=e136]:
+              - generic [ref=e138]: x도 코드를 만들기
+              - paragraph [ref=e139]: 도수 음과 코드 타입을 합쳐 다이어토닉 7화음을 만듭니다.
+        - button "🔒 숫자 진행 → 코드 진행 숫자 진행을 실제 코드 진행으로 변환합니다." [disabled] [ref=e140]:
+          - generic [ref=e141]:
+            - generic [ref=e142]: 🔒
+            - generic [ref=e143]:
+              - generic [ref=e145]: 숫자 진행 → 코드 진행
+              - paragraph [ref=e146]: 숫자 진행을 실제 코드 진행으로 변환합니다.
+        - button "🔒 코드 진행 → 도수 진행 분석 코드 진행을 보고 도수 진행을 역분석합니다." [disabled] [ref=e147]:
+          - generic [ref=e148]:
+            - generic [ref=e149]: 🔒
+            - generic [ref=e150]:
+              - generic [ref=e152]: 코드 진행 → 도수 진행 분석
+              - paragraph [ref=e153]: 코드 진행을 보고 도수 진행을 역분석합니다.
+      - generic [ref=e155]:
+        - generic [ref=e156]: 전체 진행
+        - generic [ref=e157]: 0 / 8 완료
+  - button "Open Next.js Dev Tools" [ref=e85] [cursor=pointer]:
+    - img [ref=e86]
+  - alert [ref=e89]

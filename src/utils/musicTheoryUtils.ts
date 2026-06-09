@@ -165,74 +165,23 @@ export function generateKeySignatureQuestion(key: string): Question {
     `flat key의 조표 순서: ${FLAT_ORDER.join(' → ')}\n` +
     `sharp key의 조표 순서: ${SHARP_ORDER.join(' → ')}`
 
-  const qTypes = ['A', 'B', 'C', 'D'] as const
-  const qType = randomItem([...qTypes])
-
-  if (qType === 'A') {
-    if (count === 0) {
-      return {
-        mode: 5,
-        key,
-        text: `C major key에는 sharp이나 flat이 붙나요?`,
-        hint,
-        explanation: `C major는 조표가 없습니다. 정답: 없음`,
-        answerList: [],
-      }
-    }
-    const accLabel = accType === 'flat' ? 'flat' : 'sharp'
+  if (count === 0) {
     return {
       mode: 5,
       key,
-      text: `${key} major key에는 어떤 ${accLabel}이 붙나요?`,
+      text: `C major key에는 어떤 조표가 붙나요?`,
       hint,
-      explanation: `${key} major는 ${accLabel}이 ${count}개 붙습니다.\n정답: ${sig.join(', ')}`,
-      answerList: sig,
+      explanation: `C major는 조표가 없습니다. 정답: 없음`,
+      answerList: [],
     }
   }
-
-  if (qType === 'B') {
-    return {
-      mode: 5,
-      key,
-      text: `${key} major key에는 sharp 또는 flat이 몇 개 붙나요?`,
-      hint,
-      explanation: count === 0
-        ? `C major는 조표가 없습니다. 정답: 0개 (없음)`
-        : `${key} major는 ${accType === 'flat' ? 'flat' : 'sharp'}이 ${count}개 붙습니다.`,
-      answerCount: count,
-    }
-  }
-
-  if (qType === 'C') {
-    if (count === 0) {
-      return {
-        mode: 5,
-        key,
-        text: `조표가 없는 major key는 무엇인가요?`,
-        hint,
-        explanation: `조표가 없는 major key는 C major입니다.`,
-        answer: 'C',
-      }
-    }
-    return {
-      mode: 5,
-      key,
-      text: `${sig.join(', ')}이 붙는 major key는 무엇인가요?`,
-      hint,
-      explanation: `${sig.join(', ')}가 붙는 major key는 ${key} major입니다.`,
-      answer: key,
-    }
-  }
-
-  // qType === 'D': scale in order
-  const scale = getScale(key)
   return {
     mode: 5,
     key,
-    text: `${key} major scale을 순서대로 적어주세요.`,
+    text: `${key} major key에는 어떤 조표가 붙나요?`,
     hint,
-    explanation: `${key} major scale: ${scale.join(' ')}`,
-    answerList: scale,
+    explanation: `${key} major는 조표가 ${count}개 붙습니다.\n정답: ${sig.join(', ')}`,
+    answerList: sig,
   }
 }
 
