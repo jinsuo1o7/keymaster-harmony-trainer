@@ -100,6 +100,10 @@ export default function QuizCard({
       }
     }
 
+    if (question.mode === 6 && question.answer !== undefined) {
+      return { correct: validateChordAnswer(userInput, question.answer), explanation: expl }
+    }
+
     return { correct: false, explanation: expl }
   }
 
