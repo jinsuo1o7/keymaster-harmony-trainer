@@ -6,18 +6,19 @@ interface ModeSelectorProps {
 }
 
 const MODES: { mode: QuizMode; label: string; description: string }[] = [
-  { mode: 1, label: '진행 코드톤', description: '숫자 진행 → 코드와 구성음' },
-  { mode: 2, label: '진행 분석', description: '코드 진행 → 도수 진행' },
-  { mode: 3, label: '도수 음', description: '특정 도수의 음 맞히기' },
-  { mode: 4, label: '도수 코드', description: '특정 도수의 7화음 코드' },
-  { mode: 5, label: '조표 암기', description: '조표 관련 훈련' },
+  { mode: 1, label: '진행 코드톤',        description: '숫자 진행 → 코드와 구성음' },
+  { mode: 2, label: '진행 분석',          description: '코드 진행 → 도수 진행' },
+  { mode: 3, label: '도수 음',            description: '특정 도수의 음 맞히기' },
+  { mode: 4, label: '도수 코드',          description: '특정 도수의 7화음 코드' },
+  { mode: 5, label: '조표 암기',          description: '조표 관련 훈련' },
+  { mode: 6, label: '세컨더리 도미넌트',  description: 'V7/x ↔ 타겟 코드 암기' },
 ]
 
 export default function ModeSelector({ selectedMode, onModeChange }: ModeSelectorProps) {
   return (
     <div className="bg-gray-800 rounded-2xl p-4 space-y-2">
       <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">퀴즈 모드</p>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {MODES.map(({ mode, label, description }) => (
           <button
             key={mode}
