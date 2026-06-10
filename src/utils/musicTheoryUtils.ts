@@ -201,6 +201,43 @@ export function generateKeySignatureQuestion(key: string): Question {
   }
 }
 
+const SEC_DOM_DEGREES = [2, 3, 4, 5, 6] as const
+
+export function generateSecondaryDominantQuestion(key: string): Question {
+  const degree = randomItem([...SEC_DOM_DEGREES])
+  const targetRoot = getScaleDegree(key, degree)
+  const dominantRoot = p5Above(targetRoot, key)
+  const dominant = dominantRoot + '7'
+  const target = getDiatonicChord(key, degree)
+
+  const degreeNames: Record<number, string> = {
+    2: 'ii도', 3: 'iii도', 4: 'IV도', 5: 'V도', 6: 'vi도',
+  }
+  const degreeName = degreeNames[degree] ?? `${degree}도`
+
+  if (Math.random() < 0.5) {
+    // Subtype A: given the target, find its secondary dominant
+    return {
+      mode: 6,
+      key,
+      text: `${key}키에서 ___ → ${target} (${degreeName})의 세컨더리 도미넌트는?`,
+      hint: `${target}의 루트 ${targetRoot}에서 완전 5도 위의 음을 찾으세요`,
+      explanation: `완전 5도 위: ${targetRoot} → ${dominantRoot}\n세컨더리 도미넌트: ${dominant} → ${target} (V7/${degreeName} in ${key})`,
+      answer: dominant,
+    }
+  } else {
+    // Subtype B: given the secondary dominant, find the target it resolves to
+    return {
+      mode: 6,
+      key,
+      text: `${key}키에서 ${dominant} → ___ 로 해결됩니다. 타겟 코드는? (${degreeName})`,
+      hint: `${dominant}은 어떤 코드의 V7인가요? (${dominantRoot}에서 완전 4도 아래 = ${targetRoot})`,
+      explanation: `${dominant}은 ${target}의 세컨더리 도미넌트 (V7/${degreeName})\n${dominant} → ${target} (${key} key 기준)`,
+      answer: target,
+    }
+  }
+}
+
 export function generateQuestion(mode: QuizMode, selectedKeys: string[]): Question {
   const keys = selectedKeys.length > 0 ? selectedKeys : KEY_GROUPS.all
   const key = randomItem(keys)
@@ -210,5 +247,6 @@ export function generateQuestion(mode: QuizMode, selectedKeys: string[]): Questi
     case 3: return generateDegreeNoteQuestion(key)
     case 4: return generateDegreeChordQuestion(key)
     case 5: return generateKeySignatureQuestion(key)
+    case 6: return generateSecondaryDominantQuestion(key)
   }
 }
