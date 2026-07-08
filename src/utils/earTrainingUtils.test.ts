@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   ALL_CHORD_QUALITY_IDS,
   ALL_DEGREES,
@@ -7,6 +7,8 @@ import {
   buildCustomProgression,
   loadCustomChord,
   loadCustomProgression,
+  saveCustomChord,
+  saveCustomProgression,
   progressionSignature,
 } from './earTrainingUtils'
 
@@ -71,5 +73,69 @@ describe('localStorage config (node/SSR falls back to defaults)', () => {
     expect(cfg.degrees.length).toBeGreaterThanOrEqual(2)
     expect(cfg.length).toBeGreaterThanOrEqual(1)
     expect(cfg.length).toBeLessThanOrEqual(4)
+  })
+})
+
+describe('localStorage config (with window present)', () => {
+  // Minimal in-memory localStorage stub — vitest runs with environment: 'node'
+  // (no jsdom), so `window` is undefined by default and the load/save functions
+  // hit their SSR early-return. Installing this stub on globalThis lets the
+  // try/parse/validate/fallback branches actually run.
+  let store: Record<string, string>
+
+  const localStorageStub = {
+    getItem: (key: string): string | null => (key in store ? store[key] : null),
+    setItem: (key: string, value: string): void => {
+      store[key] = String(value)
+    },
+    removeItem: (key: string): void => {
+      delete store[key]
+    },
+    clear: (): void => {
+      store = {}
+    },
+  }
+
+  beforeEach(() => {
+    store = {}
+    ;(globalThis as unknown as { window: unknown }).window = { localStorage: localStorageStub }
+    ;(globalThis as unknown as { localStorage: unknown }).localStorage = localStorageStub
+  })
+
+  afterEach(() => {
+    delete (globalThis as unknown as { window?: unknown }).window
+    delete (globalThis as unknown as { localStorage?: unknown }).localStorage
+  })
+
+  it('round-trips a custom chord config through save then load', () => {
+    saveCustomChord({ qualities: ['maj', 'min', 'dim'] })
+    expect(store['keymaster_earCustom_chord']).toBe(JSON.stringify({ qualities: ['maj', 'min', 'dim'] }))
+    expect(loadCustomChord()).toEqual({ qualities: ['maj', 'min', 'dim'] })
+  })
+
+  it('round-trips a custom progression config through save then load', () => {
+    saveCustomProgression({ degrees: [2, 5], length: 3 })
+    expect(store['keymaster_earCustom_progression']).toBe(JSON.stringify({ degrees: [2, 5], length: 3 }))
+    expect(loadCustomProgression()).toEqual({ degrees: [2, 5], length: 3 })
+  })
+
+  it('falls back to the chord default on corrupt JSON', () => {
+    store['keymaster_earCustom_chord'] = '{not valid json'
+    expect(loadCustomChord()).toEqual({ qualities: ['maj', 'min'] })
+  })
+
+  it('falls back to the progression default on corrupt JSON', () => {
+    store['keymaster_earCustom_progression'] = '{not valid json'
+    expect(loadCustomProgression()).toEqual({ degrees: [1, 4, 5], length: 2 })
+  })
+
+  it('filters invalid chord qualities and falls back when too few remain valid', () => {
+    store['keymaster_earCustom_chord'] = JSON.stringify({ qualities: ['maj', 'bogus'] })
+    expect(loadCustomChord()).toEqual({ qualities: ['maj', 'min'] })
+  })
+
+  it('filters invalid progression degrees and falls back when too few remain valid', () => {
+    store['keymaster_earCustom_progression'] = JSON.stringify({ degrees: [1], length: 2 })
+    expect(loadCustomProgression()).toEqual({ degrees: [1, 4, 5], length: 2 })
   })
 })
