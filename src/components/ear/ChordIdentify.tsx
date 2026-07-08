@@ -261,7 +261,13 @@ export default function ChordIdentify() {
             </div>
           )}
 
-          <div className="grid gap-2 grid-cols-2">
+          <div className={`grid gap-2 ${
+            activeQualities.length <= 2 ? 'grid-cols-2'
+              : activeQualities.length === 3 ? 'grid-cols-3'
+              : activeQualities.length === 4 ? 'grid-cols-2'
+              : activeQualities.length <= 6 ? 'grid-cols-3'
+              : 'grid-cols-4'
+          }`}>
             {activeQualities.map(q => (
               <button
                 key={q}

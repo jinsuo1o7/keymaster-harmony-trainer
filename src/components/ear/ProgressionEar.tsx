@@ -303,7 +303,14 @@ export default function ProgressionEar() {
                 🎼 조 다시 듣기
               </button>
 
-              <div className={`grid gap-2 ${answerDegrees.length <= 3 ? 'grid-cols-3' : answerDegrees.length <= 5 ? 'grid-cols-5' : 'grid-cols-4'}`}>
+              <div className={`grid gap-2 ${
+                answerDegrees.length === 2 ? 'grid-cols-2'
+                  : answerDegrees.length === 3 ? 'grid-cols-3'
+                  : answerDegrees.length === 4 ? 'grid-cols-4'
+                  : answerDegrees.length === 5 ? 'grid-cols-5'
+                  : answerDegrees.length === 6 ? 'grid-cols-3'
+                  : 'grid-cols-4'
+              }`}>
                 {answerDegrees.map(deg => (
                   <button
                     key={deg}
