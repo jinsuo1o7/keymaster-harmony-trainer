@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { QuizMode, KeyGroup, Question, QuizResult, TutorialProgress } from '@/src/types/quiz'
-import { generateQuestion } from '@/src/utils/musicTheoryUtils'
+import { generateQuestion, generateQuestionForKey } from '@/src/utils/musicTheoryUtils'
 import { loadTutorialProgress, saveTutorialProgress } from '@/src/utils/tutorialUtils'
 import { KEY_GROUPS } from '@/src/data/musicTheory'
+import { DEFAULT_MODE } from '@/src/data/quizModes'
 import Header from '@/src/components/Header'
 import KeyRangeSelector from '@/src/components/KeyRangeSelector'
 import ModeSelector from '@/src/components/ModeSelector'
@@ -12,6 +13,9 @@ import ResultPanel from '@/src/components/ResultPanel'
 import StudyPanel from '@/src/components/StudyPanel'
 import TutorialHome from '@/src/components/TutorialHome'
 import TutorialLevel from '@/src/components/TutorialLevel'
+import FocusTraining from '@/src/components/FocusTraining'
+import EarTrainingMode from '@/src/components/EarTrainingMode'
+import ChordToneFretboard from '@/src/components/fretboard/ChordToneFretboard'
 
 const LS = {
   currentScore:      'keymaster_currentScore',
@@ -20,7 +24,10 @@ const LS = {
   selectedKeyGroup:  'keymaster_selectedKeyGroup',
   customSelectedKeys:'keymaster_customSelectedKeys',
   selectedQuizMode:  'keymaster_selectedQuizMode',
+  practiceStyle:     'keymaster_practiceStyle',
 }
+
+type PracticeStyle = 'random' | 'focus'
 
 function load<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue
@@ -37,7 +44,8 @@ function save(key: string, value: unknown): void {
 }
 
 export default function App() {
-  const [activeTab,    setActiveTab]    = useState<'quiz' | 'tutorial'>('quiz')
+  const [activeTab,    setActiveTab]    = useState<'tutorial' | 'quiz' | 'ear' | 'fretboard'>('tutorial')
+  const [practiceStyle, setPracticeStyle] = useState<PracticeStyle>('random')
   const [tutorialLevel, setTutorialLevel] = useState<number | null>(null)
   const [tutorialProgress, setTutorialProgress] = useState<TutorialProgress>({
     unlockedLevel: 1, completedLevels: [], scores: {}, lastLevel: null, completed: false,
@@ -48,7 +56,7 @@ export default function App() {
   const [streak,       setStreak]       = useState(0)
   const [keyGroup,     setKeyGroup]     = useState<KeyGroup>('all')
   const [customKeys,   setCustomKeys]   = useState<string[]>([])
-  const [quizMode,     setQuizMode]     = useState<QuizMode>(1)
+  const [quizMode,     setQuizMode]     = useState<QuizMode>(DEFAULT_MODE)
   const [question,     setQuestion]     = useState<Question | null>(null)
   const [result,       setResult]       = useState<QuizResult | null>(null)
   const [hintUsed,     setHintUsed]     = useState(false)
@@ -59,6 +67,7 @@ export default function App() {
   useEffect(() => { save(LS.selectedKeyGroup,   keyGroup)     }, [keyGroup])
   useEffect(() => { save(LS.customSelectedKeys, customKeys)   }, [customKeys])
   useEffect(() => { save(LS.selectedQuizMode,   quizMode)     }, [quizMode])
+  useEffect(() => { save(LS.practiceStyle,       practiceStyle)}, [practiceStyle])
 
   const getActiveKeys = useCallback((): string[] => {
     if (keyGroup === 'custom') {
@@ -68,12 +77,26 @@ export default function App() {
   }, [keyGroup, customKeys])
 
   const lastQuestionText = useRef<string>('')
+  const keyQueueRef = useRef<string[]>([])
+
+  useEffect(() => { keyQueueRef.current = [] }, [keyGroup, customKeys])
 
   const loadNextQuestion = useCallback((mode: QuizMode) => {
     const keys = getActiveKeys()
-    let next = generateQuestion(mode, keys)
-    if (next.text === lastQuestionText.current) {
-      next = generateQuestion(mode, keys)
+
+    function dequeue(): string {
+      if (keyQueueRef.current.length === 0) {
+        const shuffled = [...keys].sort(() => Math.random() - 0.5)
+        keyQueueRef.current = shuffled
+      }
+      return keyQueueRef.current.pop()!
+    }
+
+    let next = generateQuestionForKey(mode, dequeue())
+    let attempts = 0
+    while (next.text === lastQuestionText.current && attempts < 10) {
+      next = generateQuestionForKey(mode, dequeue())
+      attempts++
     }
     lastQuestionText.current = next.text
     setQuestion(next)
@@ -86,9 +109,10 @@ export default function App() {
     const savedScore   = load<number>(LS.currentScore, 0)
     const savedBest    = load<number>(LS.bestScore, 0)
     const savedStreak  = load<number>(LS.streak, 0)
-    const savedMode    = load<QuizMode>(LS.selectedQuizMode, 1)
+    const savedMode    = load<QuizMode>(LS.selectedQuizMode, DEFAULT_MODE)
     const savedGroup   = load<KeyGroup>(LS.selectedKeyGroup, 'all')
     const savedCustom  = load<string[]>(LS.customSelectedKeys, [])
+    const savedStyle   = load<PracticeStyle>(LS.practiceStyle, 'random')
 
     setCurrentScore(savedScore)
     setBestScore(savedBest)
@@ -96,6 +120,7 @@ export default function App() {
     setQuizMode(savedMode)
     setKeyGroup(savedGroup)
     setCustomKeys(savedCustom)
+    setPracticeStyle(savedStyle)
     setTutorialProgress(loadTutorialProgress())
 
     const keys =
@@ -137,29 +162,21 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen text-fg">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4 pb-12">
         <Header currentScore={currentScore} bestScore={bestScore} streak={streak} />
 
-        {/* Tab bar */}
-        <div className="flex gap-1 bg-gray-800 rounded-xl p-1">
-          <button
-            onClick={() => setActiveTab('quiz')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'quiz' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            퀴즈 모드
-          </button>
+        {/* Tab bar — learn first, then practice */}
+        <div className="flex gap-1 bg-surface border border-border rounded-xl p-1">
           <button
             onClick={() => { setActiveTab('tutorial'); setTutorialLevel(null) }}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'tutorial' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
+              activeTab === 'tutorial' ? 'bg-primary text-bg glow-primary' : 'text-muted hover:text-fg'
             }`}
           >
             튜토리얼
             {tutorialProgress.completedLevels.length > 0 && !tutorialProgress.completed && (
-              <span className="ml-1.5 text-xs bg-indigo-700 text-indigo-200 px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-primary/15 text-primary-bright px-1.5 py-0.5 rounded-full">
                 {tutorialProgress.completedLevels.length}/8
               </span>
             )}
@@ -167,34 +184,89 @@ export default function App() {
               <span className="ml-1.5 text-xs">✓</span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab('quiz')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'quiz' ? 'bg-primary text-bg glow-primary' : 'text-muted hover:text-fg'
+            }`}
+          >
+            연습
+          </button>
+          <button
+            onClick={() => setActiveTab('ear')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'ear' ? 'bg-primary text-bg glow-primary' : 'text-muted hover:text-fg'
+            }`}
+          >
+            음감 훈련
+          </button>
+          <button
+            onClick={() => setActiveTab('fretboard')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'fretboard' ? 'bg-primary text-bg glow-primary' : 'text-muted hover:text-fg'
+            }`}
+          >
+            지판
+          </button>
         </div>
 
-        {/* Quiz tab */}
+        {/* Practice tab — random quiz or focused repetition */}
         {activeTab === 'quiz' && (
           <>
-            <KeyRangeSelector
-              selectedGroup={keyGroup}
-              customKeys={customKeys}
-              onGroupChange={handleKeyGroupChange}
-              onCustomKeysChange={setCustomKeys}
-            />
-            <ModeSelector selectedMode={quizMode} onModeChange={handleModeChange} />
-            {question && (
+            <div className="flex gap-1 bg-surface border border-border rounded-xl p-1">
+              <button
+                onClick={() => setPracticeStyle('random')}
+                className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  practiceStyle === 'random' ? 'bg-primary text-bg glow-primary' : 'text-muted hover:text-fg'
+                }`}
+              >
+                랜덤 퀴즈
+              </button>
+              <button
+                onClick={() => setPracticeStyle('focus')}
+                className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  practiceStyle === 'focus' ? 'bg-primary text-bg glow-primary' : 'text-muted hover:text-fg'
+                }`}
+              >
+                🎯 집중 반복
+              </button>
+            </div>
+
+            {practiceStyle === 'random' ? (
               <>
-                <QuizCard
-                  question={question}
-                  result={result}
-                  hintUsed={hintUsed}
-                  onHint={() => setHintUsed(true)}
-                  onAnswer={handleAnswer}
-                  onNext={() => loadNextQuestion(quizMode)}
+                <KeyRangeSelector
+                  selectedGroup={keyGroup}
+                  customKeys={customKeys}
+                  onGroupChange={handleKeyGroupChange}
+                  onCustomKeysChange={setCustomKeys}
                 />
-                {result && <ResultPanel result={result} />}
-                <StudyPanel questionKey={question.key} />
+                <ModeSelector selectedMode={quizMode} onModeChange={handleModeChange} />
+                {question && (
+                  <>
+                    <QuizCard
+                      question={question}
+                      result={result}
+                      hintUsed={hintUsed}
+                      onHint={() => setHintUsed(true)}
+                      onAnswer={handleAnswer}
+                      onNext={() => loadNextQuestion(quizMode)}
+                    />
+                    {result && <ResultPanel result={result} />}
+                    <StudyPanel questionKey={question.key} />
+                  </>
+                )}
               </>
+            ) : (
+              <FocusTraining />
             )}
           </>
         )}
+
+        {/* Ear training tab */}
+        {activeTab === 'ear' && <EarTrainingMode />}
+
+        {/* Fretboard tab */}
+        {activeTab === 'fretboard' && <ChordToneFretboard />}
 
         {/* Tutorial tab */}
         {activeTab === 'tutorial' && (
