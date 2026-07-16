@@ -16,7 +16,7 @@ interface FretboardProps {
 
 const FRET_W = 40
 const STRING_GAP = 26
-const PAD_L = 16
+const PAD_L = 40
 const PAD_T = 16
 const DOTS = [3, 5, 7, 9, 12, 15]
 const STRINGS = OPEN_MIDI.length // 6
@@ -60,7 +60,6 @@ export default function Fretboard({ markers, onFretClick, disabled }: FretboardP
         {OPEN_MIDI.map((_, s) =>
           Array.from({ length: MAX_FRET + 1 }, (_, f) => {
             const m = markerAt(s, f)
-            const cx = xFor(f) + (f === 0 ? -FRET_W / 2 : -FRET_W / 2)
             return (
               <g key={`c${s}-${f}`}>
                 <rect x={xFor(f) - FRET_W} y={yFor(s) - STRING_GAP / 2}
