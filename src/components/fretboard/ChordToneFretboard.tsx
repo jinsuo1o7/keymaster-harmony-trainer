@@ -5,6 +5,7 @@ import {
   type Quality,
   type Stage,
   type Degree,
+  MAX_FRET,
   TAP_ORDER,
   pickAnchor,
   expectedPosition,
@@ -26,6 +27,11 @@ import {
 
 type Phase = 'answering' | 'feedback'
 type Pos = { string: number; fret: number }
+type DonePos = { string: number; fret: number; degree: Degree }
+
+// The open A string pitch class — the root always sits on the A string, so its
+// lowest fretted position drives the visible window in "find" mode.
+const OPEN_A_PC = 9
 
 const STAGES: { id: Stage; label: string; hint: string }[] = [
   { id: 'guided', label: '가이드', hint: '자리 표시' },
@@ -89,7 +95,7 @@ export default function ChordToneFretboard() {
   const [anchor, setAnchor] = useState<number | null>(null)
   const [targetRootPc, setTargetRootPc] = useState(0)
   const [stepIndex, setStepIndex] = useState(0)
-  const [done, setDone] = useState<Pos[]>([])
+  const [done, setDone] = useState<DonePos[]>([])
   const [wrong, setWrong] = useState<Pos | null>(null)
   const [phase, setPhase] = useState<Phase>('answering')
   const [session, setSession] = useState({ correct: 0, total: 0 })
@@ -200,7 +206,7 @@ export default function ChordToneFretboard() {
           return
         }
         setAnchor(derived)
-        setDone(d => [...d, { string: s, fret: f }])
+        setDone(d => [...d, { string: s, fret: f, degree: 7 }])
         setStepIndex(1)
         return
       }
@@ -212,7 +218,7 @@ export default function ChordToneFretboard() {
         missedRef.current = true
         return
       }
-      setDone(d => [...d, { string: s, fret: f }])
+      setDone(d => [...d, { string: s, fret: f, degree }])
       const nextStep = stepIndex + 1
       setStepIndex(nextStep)
       if (nextStep === 4) {
@@ -223,11 +229,16 @@ export default function ChordToneFretboard() {
   )
 
   const buildMarkers = (): Marker[] => {
-    const markers: Marker[] = done.map(pos => ({ ...pos, kind: 'done' }))
+    const markers: Marker[] = done.map(pos => ({
+      string: pos.string,
+      fret: pos.fret,
+      kind: 'done',
+      label: DEGREE_LABEL[pos.degree],
+    }))
 
     if (stage !== 'find' && anchor !== null) {
       const startPos = expectedPosition(quality, anchor, 7)
-      markers.push({ ...startPos, kind: 'start' })
+      markers.push({ ...startPos, kind: 'start', label: DEGREE_LABEL[7] })
     }
 
     if (stage === 'guided' && anchor !== null) {
@@ -257,6 +268,14 @@ export default function ChordToneFretboard() {
   const stageInfo = STAGES.find(s => s.id === stage)!
   const targetLabel = `${chordLabel(quality, targetRootPc)} · 7→1→3→5`
   const nextDegree = TAP_ORDER[stepIndex]
+
+  // Visible fret window: a focused position around the shape. In find mode the
+  // anchor is unknown until the first tap, so we center on the target root's
+  // lowest A-string fret, giving the player a readable region to search within.
+  const focusFret = anchor !== null ? anchor : (((targetRootPc - OPEN_A_PC) % 12) + 12) % 12
+  const windowSpan = stage === 'find' ? 6 : 4
+  const loFret = Math.max(0, Math.min(focusFret - 1, MAX_FRET - windowSpan))
+  const hiFret = loFret + windowSpan
 
   if (!started) {
     return (
@@ -358,7 +377,13 @@ export default function ChordToneFretboard() {
         </div>
       )}
 
-      <Fretboard markers={buildMarkers()} onFretClick={handleClick} disabled={phase !== 'answering'} />
+      <Fretboard
+        markers={buildMarkers()}
+        loFret={loFret}
+        hiFret={hiFret}
+        onFretClick={handleClick}
+        disabled={phase !== 'answering'}
+      />
 
       {phase === 'feedback' && (
         <div className="space-y-3">
