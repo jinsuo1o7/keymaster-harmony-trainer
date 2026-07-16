@@ -9,13 +9,11 @@ import {
   TAP_ORDER,
   pickAnchor,
   expectedPosition,
-  shapeNoteFor,
-  shapeMidis,
   chordLabel,
   rootPcAt,
   degreePc,
   pitchClassAt,
-  anchorFretRange,
+  midiAt,
 } from '@/src/utils/fretboardUtils'
 import { playMidiSequence } from '@/src/utils/audioUtils'
 import {
@@ -134,7 +132,9 @@ export default function ChordToneFretboard() {
           guard++
         }
       }
-      setAnchor(null)
+      // Reference position for the window only — the lowest A-string fret of the
+      // root. Grading is by relative degree (pitch class), not this position.
+      setAnchor(((nextRootPc - OPEN_A_PC) % 12 + 12) % 12)
       setStepIndex(0)
     } else {
       const a = pickAnchor(stage)
@@ -162,7 +162,7 @@ export default function ChordToneFretboard() {
   }
 
   const complete = useCallback(
-    async (resolvedAnchor: number, resolvedQuality: Quality) => {
+    async (finalDone: DonePos[], resolvedAnchor: number, resolvedQuality: Quality) => {
       const isClean = !missedRef.current
       const newStreak = isClean ? streak + 1 : 0
       setClean(isClean)
@@ -178,57 +178,58 @@ export default function ChordToneFretboard() {
         }),
       )
       setPhase('feedback')
-      await playMidiSequence(shapeMidis(resolvedQuality, resolvedAnchor), {
-        noteDur: 0.42,
-        gap: 0.05,
+      // Play back exactly what's on the board: each tapped note in 7→1→3→5 order,
+      // falling back to the shown 7 (guided/anchor never tap it).
+      const midis = TAP_ORDER.map(deg => {
+        const placed = finalDone.find(d => d.degree === deg)
+        const pos = placed ?? expectedPosition(resolvedQuality, resolvedAnchor, deg)
+        return midiAt(pos.string, pos.fret)
       })
+      await playMidiSequence(midis, { noteDur: 0.42, gap: 0.05 })
     },
     [streak],
   )
 
   const handleClick = useCallback(
     (s: number, f: number) => {
-      if (phase !== 'answering') return
+      if (phase !== 'answering' || anchor === null) return
       setWrong(null)
 
+      // Grade by relative degree: any note whose pitch class is the required
+      // chord tone (from the fixed root) counts — position/string/octave free.
       const degree = TAP_ORDER[stepIndex]
-
-      if (anchor === null) {
-        // find stage, first tap: locate the 7th.
-        const seven = shapeNoteFor(quality, 7)
-        const pitchMatches = pitchClassAt(s, f) === degreePc(quality, targetRootPc, 7) && s === seven.string
-        const derived = f - seven.fretOffset
-        const { min, max } = anchorFretRange('find')
-        const correct = pitchMatches && derived >= min && derived <= max
-        if (!correct) {
-          setWrong({ string: s, fret: f })
-          missedRef.current = true
-          return
-        }
-        setAnchor(derived)
-        setDone(d => [...d, { string: s, fret: f, degree: 7 }])
-        setStepIndex(1)
-        return
-      }
-
-      const exp = expectedPosition(quality, anchor, degree)
-      const correct = s === exp.string && f === exp.fret
+      const correct = pitchClassAt(s, f) === degreePc(quality, targetRootPc, degree)
       if (!correct) {
         setWrong({ string: s, fret: f })
         missedRef.current = true
         return
       }
-      setDone(d => [...d, { string: s, fret: f, degree }])
+
+      const entry: DonePos = { string: s, fret: f, degree }
+      const nextDone = [...done, entry]
+      setDone(nextDone)
       const nextStep = stepIndex + 1
       setStepIndex(nextStep)
       if (nextStep === 4) {
-        complete(anchor, quality)
+        complete(nextDone, anchor, quality)
       }
     },
-    [phase, stepIndex, anchor, quality, targetRootPc, complete],
+    [phase, stepIndex, anchor, quality, targetRootPc, done, complete],
   )
 
+  const nextDegree = TAP_ORDER[stepIndex]
+
+  // Visible fret window: a focused region around the reference position (in find
+  // mode, the root's lowest A-string fret). Grading is position-free, but the
+  // window keeps the board readable and scroll-free.
+  const focusFret = anchor ?? 5
+  const windowSpan = stage === 'find' ? 6 : 4
+  const loFret = Math.max(0, Math.min(focusFret - 1, MAX_FRET - windowSpan))
+  const hiFret = loFret + windowSpan
+
   const buildMarkers = (): Marker[] => {
+    const isDone = (s: number, f: number) => done.some(d => d.string === s && d.fret === f)
+
     const markers: Marker[] = done.map(pos => ({
       string: pos.string,
       fret: pos.fret,
@@ -236,18 +237,23 @@ export default function ChordToneFretboard() {
       label: DEGREE_LABEL[pos.degree],
     }))
 
+    // guided/anchor reveal the 7 as the starting reference.
     if (stage !== 'find' && anchor !== null) {
       const startPos = expectedPosition(quality, anchor, 7)
-      markers.push({ ...startPos, kind: 'start', label: DEGREE_LABEL[7] })
+      if (!isDone(startPos.string, startPos.fret)) {
+        markers.push({ ...startPos, kind: 'start', label: DEGREE_LABEL[7] })
+      }
     }
 
-    if (stage === 'guided' && anchor !== null) {
-      const hintDegrees: Degree[] = [1, 3, 5]
-      for (const degree of hintDegrees) {
-        const pos = expectedPosition(quality, anchor, degree)
-        const already = done.some(d => d.string === pos.string && d.fret === pos.fret)
-        if (!already) {
-          markers.push({ ...pos, kind: 'hint', label: DEGREE_LABEL[degree] })
+    // guided: highlight every spot in view where the CURRENT degree can go,
+    // since any correct chord-tone position is accepted.
+    if (stage === 'guided' && phase === 'answering' && stepIndex < TAP_ORDER.length) {
+      const wantPc = degreePc(quality, targetRootPc, nextDegree)
+      for (let s = 0; s < 6; s++) {
+        for (let f = loFret; f <= hiFret; f++) {
+          if (pitchClassAt(s, f) === wantPc && !isDone(s, f)) {
+            markers.push({ string: s, fret: f, kind: 'hint', label: DEGREE_LABEL[nextDegree] })
+          }
         }
       }
     }
@@ -267,15 +273,6 @@ export default function ChordToneFretboard() {
 
   const stageInfo = STAGES.find(s => s.id === stage)!
   const targetLabel = `${chordLabel(quality, targetRootPc)} · 7→1→3→5`
-  const nextDegree = TAP_ORDER[stepIndex]
-
-  // Visible fret window: a focused position around the shape. In find mode the
-  // anchor is unknown until the first tap, so we center on the target root's
-  // lowest A-string fret, giving the player a readable region to search within.
-  const focusFret = anchor !== null ? anchor : (((targetRootPc - OPEN_A_PC) % 12) + 12) % 12
-  const windowSpan = stage === 'find' ? 6 : 4
-  const loFret = Math.max(0, Math.min(focusFret - 1, MAX_FRET - windowSpan))
-  const hiFret = loFret + windowSpan
 
   if (!started) {
     return (

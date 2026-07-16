@@ -127,9 +127,11 @@ const SOLID_FILL: Record<'start' | 'done' | 'wrong', string> = {
 
 function MarkerDot({ cx, cy, marker }: { cx: number; cy: number; marker: Marker }) {
   const r = 13
+  // Markers are purely visual — let clicks fall through to the cell beneath,
+  // otherwise a marker drawn over a cell (e.g. a guided hint) swallows the tap.
   if (marker.kind === 'hint') {
     return (
-      <g>
+      <g style={{ pointerEvents: 'none' }}>
         <circle cx={cx} cy={cy} r={r} fill="var(--color-surface-2, #1a2230)"
           stroke="var(--color-faint, #64748b)" strokeWidth={1.5} strokeDasharray="3 2" />
         {marker.label && (
@@ -140,7 +142,7 @@ function MarkerDot({ cx, cy, marker }: { cx: number; cy: number; marker: Marker 
     )
   }
   return (
-    <g>
+    <g style={{ pointerEvents: 'none' }}>
       <circle cx={cx} cy={cy} r={r} fill={SOLID_FILL[marker.kind]} />
       {marker.label && (
         <text x={cx} y={cy + 4} textAnchor="middle" fontSize={12} fontWeight={700}
