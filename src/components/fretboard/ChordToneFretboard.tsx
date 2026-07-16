@@ -14,6 +14,7 @@ import {
   rootPcAt,
   degreePc,
   pitchClassAt,
+  anchorFretRange,
 } from '@/src/utils/fretboardUtils'
 import { playMidiSequence } from '@/src/utils/audioUtils'
 import {
@@ -71,7 +72,7 @@ function qualOptionFor(quals: Quality[]): 'maj7' | 'min7' | 'both' {
 }
 
 export default function ChordToneFretboard() {
-  const initialConfig = load<FretboardConfig>(LS, DEFAULT_CONFIG)
+  const [initialConfig] = useState<FretboardConfig>(() => load<FretboardConfig>(LS, DEFAULT_CONFIG))
 
   const [started, setStarted] = useState(false)
   const [stage, setStage] = useState<Stage>(initialConfig.stage)
@@ -189,13 +190,15 @@ export default function ChordToneFretboard() {
       if (anchor === null) {
         // find stage, first tap: locate the 7th.
         const seven = shapeNoteFor(quality, 7)
-        const correct = pitchClassAt(s, f) === degreePc(quality, targetRootPc, 7) && s === seven.string
+        const pitchMatches = pitchClassAt(s, f) === degreePc(quality, targetRootPc, 7) && s === seven.string
+        const derived = f - seven.fretOffset
+        const { min, max } = anchorFretRange('find')
+        const correct = pitchMatches && derived >= min && derived <= max
         if (!correct) {
           setWrong({ string: s, fret: f })
           missedRef.current = true
           return
         }
-        const derived = f - seven.fretOffset
         setAnchor(derived)
         setDone(d => [...d, { string: s, fret: f }])
         setStepIndex(1)
@@ -238,7 +241,11 @@ export default function ChordToneFretboard() {
       }
     }
 
-    if (wrong) markers.push({ ...wrong, kind: 'wrong' })
+    if (wrong) {
+      const idx = markers.findIndex(m => m.string === wrong.string && m.fret === wrong.fret)
+      if (idx !== -1) markers.splice(idx, 1)
+      markers.push({ ...wrong, kind: 'wrong' })
+    }
 
     return markers
   }
