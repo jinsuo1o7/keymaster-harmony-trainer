@@ -11,19 +11,23 @@ import {
 } from '@/src/data/musicTheory'
 
 const NOTE_SEMITONES: Record<string, number> = {
-  C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4,
-  F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11,
+  C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, 'E#': 5, Fb: 4,
+  F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11, 'B#': 0, Cb: 11,
 }
-const FLAT_NAMES  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
-const SHARP_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+const LETTER_ORDER = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+const NATURAL_SEMITONES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
 
-function useFlatsForKey(key: string): boolean {
-  return ['C', 'F', 'Bb', 'Eb'].includes(key)
-}
-
-function p5Above(note: string, key: string): string {
-  const semitone = ((NOTE_SEMITONES[note] ?? 0) + 7) % 12
-  return useFlatsForKey(key) ? FLAT_NAMES[semitone] : SHARP_NAMES[semitone]
+// 완전 5도 위 음을 음이름(letter) 기준으로 철자한다.
+// 5도 위 = 음이름 4칸 위, 반음차로 임시표(#/b/x/bb)를 붙여 정확한 표기를 만든다.
+// (예: A# → E#, Gb → Db) 열두 키 전체에서 이명동음 오표기 없이 동작한다.
+function p5Above(note: string): string {
+  const letterIdx = LETTER_ORDER.indexOf(note[0])
+  const targetLetter = LETTER_ORDER[(letterIdx + 4) % 7]
+  const targetSemitone = ((NOTE_SEMITONES[note] ?? 0) + 7) % 12
+  const diff = ((targetSemitone - NATURAL_SEMITONES[targetLetter]) % 12 + 12) % 12
+  const accidental =
+    diff === 0 ? '' : diff === 1 ? '#' : diff === 11 ? 'b' : diff === 2 ? 'x' : diff === 10 ? 'bb' : ''
+  return targetLetter + accidental
 }
 
 export function getScale(key: string): string[] {
@@ -89,8 +93,8 @@ function randomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-function randomDegree(): number {
-  return Math.floor(Math.random() * 7) + 1
+function randomDegree(min = 1): number {
+  return Math.floor(Math.random() * (8 - min)) + min
 }
 
 export function generateProgressionQuestion(key: string): Question {
@@ -137,7 +141,7 @@ export function generateProgressionAnalysisQuestion(key: string): Question {
 }
 
 export function generateDegreeNoteQuestion(key: string): Question {
-  const degree = randomDegree()
+  const degree = randomDegree(2)
   const note = getScaleDegree(key, degree)
   const scale = getScale(key)
 
@@ -206,7 +210,7 @@ const SEC_DOM_DEGREES = [2, 3, 4, 5, 6] as const
 export function generateSecondaryDominantQuestion(key: string): Question {
   const degree = randomItem([...SEC_DOM_DEGREES])
   const targetRoot = getScaleDegree(key, degree)
-  const dominantRoot = p5Above(targetRoot, key)
+  const dominantRoot = p5Above(targetRoot)
   const dominant = dominantRoot + '7'
   const target = getDiatonicChord(key, degree)
 
@@ -238,9 +242,7 @@ export function generateSecondaryDominantQuestion(key: string): Question {
   }
 }
 
-export function generateQuestion(mode: QuizMode, selectedKeys: string[]): Question {
-  const keys = selectedKeys.length > 0 ? selectedKeys : KEY_GROUPS.all
-  const key = randomItem(keys)
+export function generateQuestionForKey(mode: QuizMode, key: string): Question {
   switch (mode) {
     case 1: return generateProgressionQuestion(key)
     case 2: return generateProgressionAnalysisQuestion(key)
@@ -249,4 +251,9 @@ export function generateQuestion(mode: QuizMode, selectedKeys: string[]): Questi
     case 5: return generateKeySignatureQuestion(key)
     case 6: return generateSecondaryDominantQuestion(key)
   }
+}
+
+export function generateQuestion(mode: QuizMode, selectedKeys: string[]): Question {
+  const keys = selectedKeys.length > 0 ? selectedKeys : KEY_GROUPS.all
+  return generateQuestionForKey(mode, randomItem(keys))
 }

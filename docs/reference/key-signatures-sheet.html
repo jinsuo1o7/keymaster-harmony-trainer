@@ -1,0 +1,318 @@
+<title>키 시그니처 암기 시트</title>
+<style>
+  :root {
+    --bg: #14161b; --surface: #1b1e25; --surface-2: #22262e; --board: #23252c;
+    --border: #2f333d; --fg: #ece7dd; --muted: #9aa0ab; --faint: #6a707b;
+    --brass: #d99a45; --brass-bright: #f0b25c; --brass-soft: rgba(217,154,69,0.16);
+    --sharp: #6ea8c7; --flat: #cf8f6a;
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-body: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "Consolas", "SFMono-Regular", Menlo, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #eceef1; --surface: #ffffff; --surface-2: #f4f5f7; --board: #f6f2ea;
+      --border: #d8dce3; --fg: #1b1e25; --muted: #5a616c; --faint: #969ca6;
+      --brass: #b3781f; --brass-bright: #986312; --brass-soft: rgba(179,120,31,0.12);
+      --sharp: #2f6f92; --flat: #a85f38;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161b; --surface: #1b1e25; --surface-2: #22262e; --board: #23252c;
+    --border: #2f333d; --fg: #ece7dd; --muted: #9aa0ab; --faint: #6a707b;
+    --brass: #d99a45; --brass-bright: #f0b25c; --brass-soft: rgba(217,154,69,0.16);
+    --sharp: #6ea8c7; --flat: #cf8f6a; color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #eceef1; --surface: #ffffff; --surface-2: #f4f5f7; --board: #f6f2ea;
+    --border: #d8dce3; --fg: #1b1e25; --muted: #5a616c; --faint: #969ca6;
+    --brass: #b3781f; --brass-bright: #986312; --brass-soft: rgba(179,120,31,0.12);
+    --sharp: #2f6f92; --flat: #a85f38; color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: clamp(20px,4vw,48px) clamp(16px,4vw,40px) 80px; }
+
+  header { border-bottom: 1px solid var(--border); padding-bottom: 26px; margin-bottom: 36px; }
+  .eyebrow { font-family: var(--font-display); font-style: italic; font-size: 0.95rem; color: var(--brass); margin: 0 0 6px; }
+  h1 { font-family: var(--font-body); font-weight: 800; font-size: clamp(1.7rem,5vw,2.5rem); line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; margin: 0 0 14px; }
+  .lede { color: var(--muted); font-size: 1.02rem; max-width: 62ch; margin: 0; }
+
+  section { margin-bottom: 44px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .sec-num { font-family: var(--font-display); font-style: italic; font-size: 1.05rem; color: var(--brass); flex: none; }
+  h2 { font-size: 1.28rem; font-weight: 800; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  .sec-sub { color: var(--muted); margin: 4px 0 22px; font-size: 0.96rem; }
+  h3 { font-size: 1rem; font-weight: 700; margin: 24px 0 10px; }
+
+  .callout { border-left: 3px solid var(--brass); background: var(--brass-soft); border-radius: 0 10px 10px 0; padding: 12px 16px; margin: 16px 0; font-size: 0.95rem; }
+  .callout strong { color: var(--brass-bright); }
+
+  /* Circle of fifths */
+  .cof-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: clamp(14px,3vw,26px); }
+  .cof-scroll { overflow-x: auto; display: flex; justify-content: center; }
+  svg.cof text { font-family: var(--font-display); }
+  .cof-legend { display: flex; flex-wrap: wrap; gap: 16px 22px; margin-top: 16px; font-size: 0.85rem; color: var(--muted); justify-content: center; }
+  .cof-legend .li { display: inline-flex; align-items: center; gap: 8px; }
+  .swatch { width: 15px; height: 15px; border-radius: 50%; flex: none; }
+  .dir { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .dir div { flex: 1; min-width: 190px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; color: var(--muted); }
+  .dir b { color: var(--fg); }
+
+  /* Sequences */
+  .seq { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+  .seq-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .seq-card .lbl { font-size: 0.82rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; margin: 0 0 10px; }
+  .seq-notes { display: flex; flex-wrap: wrap; gap: 7px; }
+  .note { font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; padding: 5px 9px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); }
+  .seq-sharp .lbl { color: var(--sharp); }
+  .seq-sharp .note { color: var(--sharp); }
+  .seq-flat .lbl { color: var(--flat); }
+  .seq-flat .note { color: var(--flat); }
+
+  /* Tables */
+  .tscroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.94rem; min-width: 460px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  thead th { background: var(--surface-2); color: var(--muted); font-weight: 600; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.key { font-family: var(--font-display); font-weight: 700; color: var(--brass); font-size: 1.08rem; }
+  td.mono { font-family: var(--font-mono); }
+  td.rel { font-family: var(--font-mono); color: var(--muted); }
+  .accnum { font-family: var(--font-mono); font-size: 0.8rem; color: var(--faint); }
+  tr.prio td.key { color: var(--brass-bright); }
+  tr.prio { background: var(--brass-soft); }
+  .none { color: var(--faint); font-style: italic; }
+  .s { color: var(--sharp); }
+  .f { color: var(--flat); }
+
+  /* Scale cards */
+  .scale-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); }
+  .scale-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .scale-card .top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .scale-card .knm { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; color: var(--brass); }
+  .scale-card .sig { font-family: var(--font-mono); font-size: 0.78rem; color: var(--faint); }
+  .scale-row { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 2px; }
+  .scale-row .n { font-family: var(--font-mono); font-size: 0.92rem; color: var(--muted); padding: 3px 7px; border-radius: 6px; background: var(--surface-2); }
+  .scale-row .n.root { color: var(--bg); background: var(--brass); font-weight: 700; }
+  .scale-card .relmark { font-size: 0.8rem; color: var(--faint); margin-top: 12px; }
+  .scale-card .relmark b { color: var(--muted); font-family: var(--font-mono); }
+
+  ul.plain { margin: 0; padding: 0; list-style: none; }
+  ul.plain li { padding: 5px 0 5px 20px; position: relative; color: var(--muted); font-size: 0.95rem; }
+  ul.plain li::before { content: ""; position: absolute; left: 2px; top: 13px; width: 6px; height: 6px; border-radius: 50%; background: var(--brass); }
+  ul.plain li b { color: var(--fg); font-weight: 700; }
+  code.k { font-family: var(--font-mono); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; color: var(--fg); font-size: 0.88em; }
+
+  footer { border-top: 1px solid var(--border); padding-top: 22px; margin-top: 8px; color: var(--faint); font-size: 0.85rem; }
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; border-radius: 4px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Jazz Guitar · 이론 레퍼런스</p>
+    <h1>샵·플랫 &amp; 키 시그니처 암기 시트</h1>
+    <p class="lede">
+      스케일 구성음은 하나씩 세지 말고 <b>키 시그니처(조표)부터</b> 외웁니다.
+      &ldquo;이 키엔 샵/플랫이 몇 개&rdquo;만 알면 나머지는 고정된 순서로 따라옵니다.
+      마이너는 새로 외우지 않고 <b>상대 메이저</b>에 얹습니다.
+    </p>
+  </header>
+
+  <!-- 1. Circle of fifths -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>5도권 한 장 지도</h2></div>
+    <p class="sec-sub">시계방향으로 갈수록 샵 +1, 반시계로 갈수록 플랫 +1. 바깥이 메이저, 안쪽이 상대 마이너입니다. 강조된 키가 재즈 초반 우선순위.</p>
+    <div class="cof-card">
+      <div class="cof-scroll" id="cof"></div>
+      <div class="cof-legend">
+        <span class="li"><span class="swatch" style="background:var(--brass)"></span> 우선 암기 키 (C·F·B♭·E♭·A♭·G·D)</span>
+        <span class="li"><span class="swatch" style="background:var(--surface-2);border:1px solid var(--border)"></span> 그 외</span>
+      </div>
+      <div class="dir">
+        <div>↻ <b>시계방향</b> = 완전5도 위 · 샵 +1 (C→G→D→A…)</div>
+        <div>↺ <b>반시계방향</b> = 완전4도 위 · 플랫 +1 (C→F→B♭→E♭…)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 붙는 순서 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>샵·플랫 붙는 순서 (고정)</h2></div>
+    <p class="sec-sub">이 순서는 절대 안 바뀝니다. 샵 3개면 늘 <span class="s">F♯ C♯ G♯</span>, 플랫 3개면 늘 <span class="f">B♭ E♭ A♭</span>.</p>
+    <div class="seq">
+      <div class="seq-card seq-sharp">
+        <p class="lbl">샵 붙는 순서 →</p>
+        <div class="seq-notes" id="sharp-seq"></div>
+      </div>
+      <div class="seq-card seq-flat">
+        <p class="lbl">플랫 붙는 순서 →</p>
+        <div class="seq-notes" id="flat-seq"></div>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>꿀팁:</strong> 플랫 순서는 샵 순서를 <strong>거꾸로</strong> 읽은 것입니다. (샵 <span class="s">F C G D A E B</span> ↔ 플랫 <span class="f">B E A D G C F</span>)
+    </div>
+  </section>
+
+  <!-- 3. 우선순위 마스터 표 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>먼저 외우는 표</h2></div>
+    <p class="sec-sub">재즈 기타 초반 우선순위 7키. 이 표 하나만 손에 익히면 대부분의 스탠다드가 편해집니다.</p>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>순</th><th>메이저</th><th>붙는 음</th><th>상대 마이너</th></tr></thead>
+        <tbody id="prio-table"></tbody>
+      </table>
+    </div>
+    <div class="callout">
+      특히 <strong>F · B♭ · E♭ · A♭</strong> 같은 플랫 키에 익숙해지는 게 재즈에선 핵심입니다.
+      지금 단계에선 <strong>C · F · B♭ · E♭ / Am · Dm · Gm · Cm</strong>부터.
+    </div>
+  </section>
+
+  <!-- 4. 구성음 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>구성음 (메이저 + 상대 마이너)</h2></div>
+    <p class="sec-sub">우선순위 키의 실제 음. 브라스 음이 으뜸음(root)입니다.</p>
+    <div class="scale-grid" id="scale-cards"></div>
+  </section>
+
+  <!-- 5. 전체 레퍼런스 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>전체 15키 레퍼런스</h2></div>
+    <p class="sec-sub">나중에 확장할 때 참고. 6개 이상은 이명동음(같은 소리, 다른 표기)입니다.</p>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>계열</th><th>메이저</th><th>조표</th><th>붙는 음</th></tr></thead>
+        <tbody id="full-table"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6. 팁 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>외우는 요령</h2></div>
+    <ul class="plain">
+      <li><b>조표 개수 → 붙는 음 → 구성음</b> 순서로 접근. 매번 &ldquo;온온반온온온반&rdquo; 세지 말 것.</li>
+      <li>메이저 스케일 공식은 <code class="k">온 온 반 온 온 온 반</code> — 확인용으로만.</li>
+      <li>마이너는 새로 외우지 말고 <b>상대 메이저와 동일</b>: Am=C, Dm=F, Gm=B♭, Cm=E♭, Fm=A♭, Em=G, Bm=D.</li>
+      <li>상대 마이너 = 메이저의 <b>6도</b> (혹은 단3도 아래). C의 6도 A → Am.</li>
+      <li>플랫 키(F·B♭·E♭·A♭)를 먼저 편하게 — 재즈 스탠다드가 여기 몰려 있습니다.</li>
+    </ul>
+  </section>
+
+  <footer>재즈 기타 입문 이론 레퍼런스 · 앞선 &ldquo;연습 시트&rdquo;와 한 세트로 보세요.</footer>
+</div>
+
+<script>
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (n, a, txt) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; };
+
+  /* ---------- Circle of fifths ---------- */
+  const MAJ = ['C','G','D','A','E','B','G♭/F♯','D♭','A♭','E♭','B♭','F'];
+  const MIN = ['Am','Em','Bm','F♯m','C♯m','G♯m','E♭m','B♭m','Fm','Cm','Gm','Dm'];
+  const ACC = ['—','1♯','2♯','3♯','4♯','5♯','6','5♭','4♭','3♭','2♭','1♭'];
+  const PRIO = new Set([0, 1, 2, 8, 9, 10, 11]); // C G D  A♭ E♭ B♭ F
+
+  function buildCircle() {
+    const cx = 185, cy = 176, R = 150, rMaj = 121, rMin = 82, rAcc = 169, rHub = 46;
+    const svg = el('svg', { class: 'cof', viewBox: '0 0 370 366', width: 340, height: 336, role: 'img', 'aria-label': '5도권 (Circle of Fifths)' });
+    const pos = (r, i) => { const a = (-90 + i * 30) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+
+    svg.appendChild(el('circle', { cx, cy, r: R, fill: 'none', stroke: 'var(--border)' }));
+    svg.appendChild(el('circle', { cx, cy, r: rHub, fill: 'var(--surface-2)', stroke: 'var(--border)' }));
+    // radial dividers
+    for (let i = 0; i < 12; i++) {
+      const a = (-90 + (i + 0.5) * 30) * Math.PI / 180;
+      svg.appendChild(el('line', { x1: cx + rHub * Math.cos(a), y1: cy + rHub * Math.sin(a), x2: cx + R * Math.cos(a), y2: cy + R * Math.sin(a), stroke: 'var(--border)' }));
+    }
+    // hub label
+    svg.appendChild(el('text', { x: cx, y: cy - 3, 'text-anchor': 'middle', 'font-size': 14, 'font-style': 'italic', fill: 'var(--brass)' }, '5도권'));
+    svg.appendChild(el('text', { x: cx, y: cy + 13, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--faint)', 'font-family': 'var(--font-mono)' }, 'Circle of 5ths'));
+
+    for (let i = 0; i < 12; i++) {
+      const prio = PRIO.has(i);
+      // accidental count (outside ring)
+      const [ax, ay] = pos(rAcc, i);
+      svg.appendChild(el('text', { x: ax, y: ay + 3.5, 'text-anchor': 'middle', 'font-size': 10, 'font-family': 'var(--font-mono)', fill: prio ? 'var(--brass)' : 'var(--faint)' }, ACC[i]));
+      // major disc
+      const [mx, my] = pos(rMaj, i);
+      const lbl = MAJ[i], long = lbl.length > 3;
+      svg.appendChild(el('ellipse', { cx: mx, cy: my, rx: long ? 27 : 19, ry: 17, fill: prio ? 'var(--brass)' : 'var(--surface-2)', stroke: prio ? 'var(--brass)' : 'var(--border)' }));
+      svg.appendChild(el('text', { x: mx, y: my + (long ? 4 : 5), 'text-anchor': 'middle', 'font-size': long ? 11 : 16, 'font-weight': 700, fill: prio ? 'var(--bg)' : 'var(--fg)' }, lbl));
+      // relative minor
+      const [nx, ny] = pos(rMin, i);
+      svg.appendChild(el('text', { x: nx, y: ny + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-family': 'var(--font-body)', fill: prio ? 'var(--brass-bright)' : 'var(--muted)' }, MIN[i]));
+    }
+    document.getElementById('cof').appendChild(svg);
+  }
+  buildCircle();
+
+  /* ---------- Accidental sequences ---------- */
+  function fillSeq(id, notes) {
+    const host = document.getElementById(id);
+    notes.forEach(n => { const s = document.createElement('span'); s.className = 'note'; s.textContent = n; host.appendChild(s); });
+  }
+  fillSeq('sharp-seq', ['F♯','C♯','G♯','D♯','A♯','E♯','B♯']);
+  fillSeq('flat-seq',  ['B♭','E♭','A♭','D♭','G♭','C♭','F♭']);
+
+  /* ---------- Priority master table ---------- */
+  const PRIO_ROWS = [
+    ['C',  '없음',            'Am'],
+    ['F',  'B♭',              'Dm'],
+    ['B♭', 'B♭ E♭',           'Gm'],
+    ['E♭', 'B♭ E♭ A♭',        'Cm'],
+    ['A♭', 'B♭ E♭ A♭ D♭',     'Fm'],
+    ['G',  'F♯',              'Em'],
+    ['D',  'F♯ C♯',           'Bm'],
+  ];
+  const pt = document.getElementById('prio-table');
+  PRIO_ROWS.forEach((r, i) => {
+    const tr = document.createElement('tr'); tr.className = 'prio';
+    const sig = r[1] === '없음' ? '<span class="none">없음</span>' : r[1];
+    tr.innerHTML = `<td class="accnum">${i + 1}</td><td class="key">${r[0]}</td><td class="mono">${sig}</td><td class="rel">${r[2]}</td>`;
+    pt.appendChild(tr);
+  });
+
+  /* ---------- Scale cards ---------- */
+  const SCALES = [
+    ['C',  '없음',         ['C','D','E','F','G','A','B'],       'Am', ['A','B','C','D','E','F','G']],
+    ['F',  'B♭',           ['F','G','A','B♭','C','D','E'],      'Dm', ['D','E','F','G','A','B♭','C']],
+    ['B♭', 'B♭ E♭',        ['B♭','C','D','E♭','F','G','A'],     'Gm', ['G','A','B♭','C','D','E♭','F']],
+    ['E♭', 'B♭ E♭ A♭',     ['E♭','F','G','A♭','B♭','C','D'],    'Cm', ['C','D','E♭','F','G','A♭','B♭']],
+    ['A♭', 'B♭ E♭ A♭ D♭',  ['A♭','B♭','C','D♭','E♭','F','G'],   'Fm', ['F','G','A♭','B♭','C','D♭','E♭']],
+    ['G',  'F♯',           ['G','A','B','C','D','E','F♯'],      'Em', ['E','F♯','G','A','B','C','D']],
+    ['D',  'F♯ C♯',        ['D','E','F♯','G','A','B','C♯'],     'Bm', ['B','C♯','D','E','F♯','G','A']],
+  ];
+  const sc = document.getElementById('scale-cards');
+  SCALES.forEach(([maj, sig, mnotes, min, nnotes]) => {
+    const card = document.createElement('div'); card.className = 'scale-card';
+    const row = (notes) => `<div class="scale-row">${notes.map((n, i) => `<span class="n${i === 0 ? ' root' : ''}">${n}</span>`).join('')}</div>`;
+    card.innerHTML =
+      `<div class="top"><span class="knm">${maj}</span><span class="sig">${sig === '없음' ? '조표 없음' : sig}</span></div>` +
+      row(mnotes) +
+      `<div class="relmark">상대 마이너 <b>${min}</b> (같은 조표)</div>` +
+      row(nnotes);
+    sc.appendChild(card);
+  });
+
+  /* ---------- Full 15-key reference ---------- */
+  const SHARP_ORDER = ['F♯','C♯','G♯','D♯','A♯','E♯','B♯'];
+  const FLAT_ORDER  = ['B♭','E♭','A♭','D♭','G♭','C♭','F♭'];
+  const SHARP_KEYS = ['C','G','D','A','E','B','F♯','C♯'];   // 0..7 sharps
+  const FLAT_KEYS  = ['C','F','B♭','E♭','A♭','D♭','G♭','C♭']; // 0..7 flats
+  const ft = document.getElementById('full-table');
+  function addRow(fam, key, count, notes, cls) {
+    const tr = document.createElement('tr');
+    const acc = count === 0 ? '<span class="none">0</span>' : `<span class="${cls}">${count}${fam === 'sharp' ? '♯' : '♭'}</span>`;
+    const nz = count === 0 ? '<span class="none">없음</span>' : `<span class="${cls}">${notes.slice(0, count).join(' ')}</span>`;
+    tr.innerHTML = `<td class="accnum">${fam === 'sharp' ? '샵' : '플랫'}</td><td class="key">${key}</td><td>${acc}</td><td class="mono">${nz}</td>`;
+    ft.appendChild(tr);
+  }
+  SHARP_KEYS.forEach((k, i) => addRow('sharp', k, i, SHARP_ORDER, 's'));
+  FLAT_KEYS.forEach((k, i) => { if (i === 0) return; addRow('flat', k, i, FLAT_ORDER, 'f'); });
+</script>

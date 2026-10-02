@@ -74,19 +74,19 @@ export default function TutorialLevel({ levelId, progress, onComplete, onBack }:
       <div className="flex items-center gap-3">
         <button
           onClick={() => { handleComplete(); onBack() }}
-          className="text-gray-400 hover:text-white transition-colors text-sm"
+          className="text-muted hover:text-fg transition-colors text-sm"
         >
           ← 목록
         </button>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-primary/15 text-primary-bright px-2 py-0.5 rounded-full font-medium">
               Level {levelId}
             </span>
-            <h2 className="text-sm font-semibold text-white">{lesson.title}</h2>
+            <h2 className="text-sm font-semibold text-fg">{lesson.title}</h2>
           </div>
         </div>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-faint">
           {phase === 'practice' ? `${currentIdx + 1}/${questions.length}` : ''}
         </span>
       </div>
@@ -127,7 +127,7 @@ export default function TutorialLevel({ levelId, progress, onComplete, onBack }:
 
       {/* Study phase: pass condition reminder */}
       {phase === 'study' && (
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-xs text-faint text-center">
           통과 조건: {lesson.totalQuestions}문제 중 {lesson.passingScore}개 이상 정답
         </div>
       )}

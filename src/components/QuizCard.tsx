@@ -10,6 +10,7 @@ import {
   validateScaleAnswer,
   validateKeyNameAnswer,
 } from '@/src/utils/answerValidation'
+import { MODE_META } from '@/src/data/quizModes'
 
 interface QuizCardProps {
   question: Question
@@ -33,6 +34,7 @@ export default function QuizCard({
   const [showHint, setShowHint] = useState(false)
   const mode1Refs = useRef<(HTMLInputElement | null)[]>([])
   const singleInputRef = useRef<HTMLInputElement | null>(null)
+  const nextReadyRef = useRef(false)
 
   useEffect(() => {
     setUserInput('')
@@ -46,12 +48,20 @@ export default function QuizCard({
   }, [question])
 
   useEffect(() => {
-    if (!result) return
+    if (!result) {
+      nextReadyRef.current = false
+      return
+    }
+    nextReadyRef.current = false
+    const timer = setTimeout(() => { nextReadyRef.current = true }, 300)
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Enter') onNext()
+      if (e.key === 'Enter' && nextReadyRef.current) onNext()
     }
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      clearTimeout(timer)
+    }
   }, [result, onNext])
 
   function handleHint() {
@@ -152,23 +162,23 @@ export default function QuizCard({
   const hintVisible = showHint || hintUsed
 
   return (
-    <div className="bg-gray-800 rounded-2xl p-4 space-y-4">
+    <div className="bg-surface border border-border rounded-2xl p-4 space-y-4">
       {/* Mode badge */}
       <div className="flex items-center justify-between">
-        <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded-full font-medium">
-          모드 {question.mode}
+        <span className="text-xs bg-primary/15 text-primary-bright px-2 py-0.5 rounded-full font-medium">
+          STEP {MODE_META[question.mode].step} · {MODE_META[question.mode].label}
         </span>
-        <span className="text-xs text-gray-500 font-mono">{question.key} key</span>
+        <span className="text-xs text-faint font-mono">{question.key} key</span>
       </div>
 
       {/* Question text */}
-      <div className="text-base font-medium text-white leading-relaxed">
+      <div className="text-base font-medium text-fg leading-relaxed">
         {question.text}
       </div>
 
       {/* Hint */}
       {hintVisible && (
-        <div className="bg-blue-950 border border-blue-700 rounded-xl p-3 text-sm text-blue-200 whitespace-pre-line">
+        <div className="bg-surface-2 border border-border rounded-xl p-3 text-sm text-muted whitespace-pre-line">
           💡 {question.hint}
         </div>
       )}
@@ -186,9 +196,9 @@ export default function QuizCard({
                 onChange={e => handleMode1Change(i, e.target.value)}
                 onKeyDown={e => handleMode1KeyDown(e, i)}
                 disabled={answered}
-                className="w-16 h-16 bg-gray-700 rounded-xl text-center text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+                className="w-16 h-16 bg-surface-2 border border-border rounded-xl text-center text-sm font-mono text-fg placeholder-faint focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50"
               />
-              <span className="text-gray-400 text-xs font-mono">{ca.degree}</span>
+              <span className="text-muted text-xs font-mono">{ca.degree}</span>
             </div>
           ))}
         </div>
@@ -204,7 +214,7 @@ export default function QuizCard({
           onChange={e => setUserInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !answered) handleSubmit() }}
           disabled={answered}
-          className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+          className="w-full bg-surface-2 border border-border rounded-lg px-4 py-3 text-fg placeholder-faint focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50"
         />
       )}
 
@@ -214,14 +224,14 @@ export default function QuizCard({
           <>
             <button
               onClick={handleSubmit}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-medium py-2.5 px-4 rounded-xl transition-colors"
+              className="flex-1 bg-primary hover:bg-primary-bright text-bg font-semibold py-2.5 px-4 rounded-xl glow-primary transition-all active:scale-[.98]"
             >
               제출
             </button>
             {!hintVisible && (
               <button
                 onClick={handleHint}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium py-2.5 px-4 rounded-xl transition-colors"
+                className="bg-surface-2 hover:bg-border text-muted font-medium py-2.5 px-4 rounded-xl transition-colors"
               >
                 힌트 (-5점)
               </button>
@@ -231,7 +241,7 @@ export default function QuizCard({
         {answered && (
           <button
             onClick={onNext}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium py-2.5 px-4 rounded-xl transition-colors"
+            className="flex-1 bg-primary hover:bg-primary-bright text-bg font-semibold py-2.5 px-4 rounded-xl glow-primary transition-all active:scale-[.98]"
           >
             다음 문제 →
           </button>

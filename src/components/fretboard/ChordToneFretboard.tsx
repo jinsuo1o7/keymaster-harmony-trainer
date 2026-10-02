@@ -1,414 +1,155 @@
 'use client'
-import { useState, useCallback, useRef, useMemo } from 'react'
-import Fretboard, { type Marker } from './Fretboard'
+
+import { useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { playChord } from '@/src/utils/audioUtils'
 import {
-  type Quality,
-  type Stage,
-  type Degree,
-  MAX_FRET,
-  TAP_ORDER,
-  pickAnchor,
-  expectedPosition,
-  chordLabel,
-  rootPcAt,
-  degreePc,
-  pitchClassAt,
-  midiAt,
-} from '@/src/utils/fretboardUtils'
-import { playMidiSequence } from '@/src/utils/audioUtils'
-import {
-  loadEarProgress,
-  recordEarResult,
-  stageAccuracy,
-  type EarProgress,
-} from '@/src/utils/earTrainingProgress'
+  MAX_FRET, QUALITY_LABEL, allTonePositions, chordMidi, chordName, createChordToneSession, fifthCircleRootName,
+  degreePitchClass, loadChordToneRecords, pitchClassAt, saveChordToneRecord,
+  type ChordQuality, type ChordToneQuestion, type ChordToneRecord, type ChordToneResult, type ChordToneStage, type Degree, type Position,
+} from '@/src/utils/chordToneTraining'
 
-type Phase = 'answering' | 'feedback'
-type Pos = { string: number; fret: number }
-type DonePos = { string: number; fret: number; degree: Degree }
-
-// The open A string pitch class — the root always sits on the A string, so its
-// lowest fretted position drives the visible window in "find" mode.
-const OPEN_A_PC = 9
-
-const STAGES: { id: Stage; label: string; hint: string }[] = [
-  { id: 'guided', label: '가이드', hint: '자리 표시' },
-  { id: 'anchor', label: '시작점만', hint: '시작만 강조' },
-  { id: 'find', label: '시작점 찾기', hint: '스스로' },
+const button = 'rounded-xl border border-border bg-surface-2 px-3 py-3 text-sm font-medium text-fg transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary'
+const primary = `${button} border-primary bg-primary text-bg hover:bg-primary-bright`
+const STAGES: { id: ChordToneStage; label: string; description: string; detail: string }[] = [
+  { id: 'roots', label: '루트 지도', description: '같은 루트를 여섯 줄에서 하나씩 찾아요.', detail: '음 이름과 지판 위치 연결' },
+  { id: 'build', label: '코드 만들기', description: '1·3·5·7도를 하나씩 찾아 코드를 완성해요.', detail: '코드의 뼈대 익히기' },
+  { id: 'guide', label: '가이드톤', description: '3도와 7도로 코드의 성질을 잡아요.', detail: '다음 코드로 연결하기' },
 ]
+const QUALITIES: ChordQuality[] = ['maj7', 'min7', 'dom7']
+const DEGREE_TEXT: Record<Degree, string> = { 1: '1', 3: '3', 5: '5', 7: '7' }
+const STRING_ORDER = [5, 4, 3, 2, 1, 0]
+const STRING_LINE_WIDTH = ['h-px', 'h-px', 'h-px', 'h-[1.5px]', 'h-[1.5px]', 'h-0.5'] as const
+type Hit = Position & { degree: Degree }
 
-const QUAL_OPTIONS: { id: 'maj7' | 'min7' | 'both'; label: string; quals: Quality[] }[] = [
-  { id: 'maj7', label: 'Maj7', quals: ['maj7'] },
-  { id: 'min7', label: 'min7', quals: ['min7'] },
-  { id: 'both', label: '둘 다', quals: ['maj7', 'min7'] },
-]
-
-const DEGREE_LABEL: Record<Degree, string> = { 1: '1', 3: '3', 5: '5', 7: '7' }
-
-const LS = 'keymaster_fretboardConfig'
-
-interface FretboardConfig {
-  stage: Stage
-  quals: Quality[]
+function subscribeRecords(onChange: () => void) {
+  window.addEventListener('storage', onChange)
+  window.addEventListener('chord-tone-records', onChange)
+  return () => { window.removeEventListener('storage', onChange); window.removeEventListener('chord-tone-records', onChange) }
 }
-
-const DEFAULT_CONFIG: FretboardConfig = { stage: 'guided', quals: ['maj7'] }
-
-function load<T>(key: string, defaultValue: T): T {
-  if (typeof window === 'undefined') return defaultValue
-  try {
-    const val = localStorage.getItem(key)
-    return val === null ? defaultValue : (JSON.parse(val) as T)
-  } catch {
-    return defaultValue
-  }
-}
-
-function save(key: string, value: unknown): void {
-  try { localStorage.setItem(key, JSON.stringify(value)) } catch {}
-}
-
-// Which of the 3-way toggle options the persisted `quals` matches, for restoring
-// the start-screen selection.
-function qualOptionFor(quals: Quality[]): 'maj7' | 'min7' | 'both' {
-  if (quals.length === 2) return 'both'
-  return quals[0] === 'min7' ? 'min7' : 'maj7'
-}
+const recordSnapshot = () => JSON.stringify(loadChordToneRecords())
+const emptyRecords = () => '[]'
 
 export default function ChordToneFretboard() {
-  const [initialConfig] = useState<FretboardConfig>(() => load<FretboardConfig>(LS, DEFAULT_CONFIG))
+  const [stage, setStage] = useState<ChordToneStage>('roots')
+  const [qualities, setQualities] = useState<ChordQuality[]>(['maj7'])
+  const [screen, setScreen] = useState<'setup' | 'session' | 'result'>('setup')
+  const [questions, setQuestions] = useState<ChordToneQuestion[]>([])
+  const [results, setResults] = useState<ChordToneResult[]>([])
+  const [hits, setHits] = useState<Hit[]>([])
+  const [wrong, setWrong] = useState<Position[]>([])
+  const [revealed, setRevealed] = useState(false)
+  const [review, setReview] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [storageError, setStorageError] = useState(false)
+  const [error, setError] = useState('')
+  const question = questions[results.length]
+  const records: ChordToneRecord[] = JSON.parse(useSyncExternalStore(subscribeRecords, recordSnapshot, emptyRecords))
+  const submitted = useRef(false)
+  const currentStage = STAGES.find(item => item.id === stage)!
+  const complete = question !== undefined && hits.length === question.degrees.length
+  const correct = results.filter(result => result.clean).length
 
-  const [started, setStarted] = useState(false)
-  const [stage, setStage] = useState<Stage>(initialConfig.stage)
-  const [qualOption, setQualOption] = useState<'maj7' | 'min7' | 'both'>(
-    qualOptionFor(initialConfig.quals),
-  )
-  const quals = useMemo<Quality[]>(
-    () => QUAL_OPTIONS.find(o => o.id === qualOption)?.quals ?? ['maj7'],
-    [qualOption],
-  )
+  function toggleQuality(quality: ChordQuality) {
+    setQualities(current => current.includes(quality)
+      ? (current.length === 1 ? current : current.filter(item => item !== quality))
+      : [...current, quality])
+  }
 
-  // per-question state
-  const [quality, setQuality] = useState<Quality>('maj7')
-  const [anchor, setAnchor] = useState<number | null>(null)
-  const [targetRootPc, setTargetRootPc] = useState(0)
-  const [stepIndex, setStepIndex] = useState(0)
-  const [done, setDone] = useState<DonePos[]>([])
-  const [wrong, setWrong] = useState<Pos | null>(null)
-  const [phase, setPhase] = useState<Phase>('answering')
-  const [session, setSession] = useState({ correct: 0, total: 0 })
-  const [streak, setStreak] = useState(0)
-  const [lifetime, setLifetime] = useState<EarProgress | null>(null)
-  const [clean, setClean] = useState(true)
+  function start(items = createChordToneSession(stage, qualities), isReview = false) {
+    setQuestions(items)
+    setResults([])
+    setHits([])
+    setWrong([])
+    setRevealed(false)
+    setReview(isReview)
+    setStorageError(false)
+    setError('')
+    submitted.current = false
+    setScreen('session')
+  }
 
-  const missedRef = useRef(false)
-  const lastRef = useRef<{ quality: Quality; rootPc: number } | null>(null)
-
-  const askNext = useCallback(() => {
-    const pool = quals
-    let nextQuality: Quality = pool.length === 1
-      ? pool[0]
-      : pool[Math.floor(Math.random() * pool.length)]
-    if (pool.length > 1 && lastRef.current) {
-      let guard = 0
-      while (nextQuality === lastRef.current.quality && guard < 8) {
-        nextQuality = pool[Math.floor(Math.random() * pool.length)]
-        guard++
+  function next() {
+    if (!question || !complete || submitted.current) return
+    submitted.current = true
+    const updated = [...results, { question, clean: wrong.length === 0 }]
+    setResults(updated)
+    if (updated.length === questions.length) {
+      if (!review) {
+        const saved = saveChordToneRecord({ stage, qualities, correct: updated.filter(item => item.clean).length, total: 8, date: new Date().toISOString() })
+        setStorageError(!saved)
+        window.dispatchEvent(new Event('chord-tone-records'))
       }
-    }
-
-    let nextRootPc: number
-
-    if (stage === 'find') {
-      nextRootPc = Math.floor(Math.random() * 12)
-      if (lastRef.current) {
-        let guard = 0
-        while (
-          nextRootPc === lastRef.current.rootPc &&
-          nextQuality === lastRef.current.quality &&
-          guard < 12
-        ) {
-          nextRootPc = Math.floor(Math.random() * 12)
-          guard++
-        }
-      }
-      // Reference position for the window only — the lowest A-string fret of the
-      // root. Grading is by relative degree (pitch class), not this position.
-      setAnchor(((nextRootPc - OPEN_A_PC) % 12 + 12) % 12)
-      setStepIndex(0)
+      setScreen('result')
     } else {
-      const a = pickAnchor(stage)
-      nextRootPc = rootPcAt(nextQuality, a)
-      setAnchor(a)
-      setStepIndex(1)
+      setHits([])
+      setWrong([])
+      setRevealed(false)
+      submitted.current = false
     }
-
-    lastRef.current = { quality: nextQuality, rootPc: nextRootPc }
-    setQuality(nextQuality)
-    setTargetRootPc(nextRootPc)
-    setDone([])
-    setWrong(null)
-    missedRef.current = false
-    setPhase('answering')
-  }, [quals, stage])
-
-  function start() {
-    save(LS, { stage, quals })
-    setSession({ correct: 0, total: 0 })
-    setStreak(0)
-    setLifetime(loadEarProgress())
-    setStarted(true)
-    askNext()
   }
 
-  const complete = useCallback(
-    async (finalDone: DonePos[], resolvedAnchor: number, resolvedQuality: Quality) => {
-      const isClean = !missedRef.current
-      const newStreak = isClean ? streak + 1 : 0
-      setClean(isClean)
-      setStreak(newStreak)
-      setSession(x => ({ correct: x.correct + (isClean ? 1 : 0), total: x.total + 1 }))
-      setLifetime(
-        recordEarResult({
-          stage: 'fretboard',
-          correct: isClean,
-          streak: newStreak,
-          missKey: 'fretboardMisses',
-          missItems: [resolvedQuality],
-        }),
-      )
-      setPhase('feedback')
-      // Play back exactly what's on the board: each tapped note in 7→1→3→5 order,
-      // falling back to the shown 7 (guided/anchor never tap it).
-      const midis = TAP_ORDER.map(deg => {
-        const placed = finalDone.find(d => d.degree === deg)
-        const pos = placed ?? expectedPosition(resolvedQuality, resolvedAnchor, deg)
-        return midiAt(pos.string, pos.fret)
-      })
-      await playMidiSequence(midis, { noteDur: 0.42, gap: 0.05 })
-    },
-    [streak],
-  )
-
-  const handleClick = useCallback(
-    (s: number, f: number) => {
-      if (phase !== 'answering' || anchor === null) return
-      setWrong(null)
-
-      // Grade by relative degree: any note whose pitch class is the required
-      // chord tone (from the fixed root) counts — position/string/octave free.
-      const degree = TAP_ORDER[stepIndex]
-      const correct = pitchClassAt(s, f) === degreePc(quality, targetRootPc, degree)
-      if (!correct) {
-        setWrong({ string: s, fret: f })
-        missedRef.current = true
-        return
-      }
-
-      const entry: DonePos = { string: s, fret: f, degree }
-      const nextDone = [...done, entry]
-      setDone(nextDone)
-      const nextStep = stepIndex + 1
-      setStepIndex(nextStep)
-      if (nextStep === 4) {
-        complete(nextDone, anchor, quality)
-      }
-    },
-    [phase, stepIndex, anchor, quality, targetRootPc, done, complete],
-  )
-
-  const nextDegree = TAP_ORDER[stepIndex]
-
-  // Visible fret window: a focused region around the reference position (in find
-  // mode, the root's lowest A-string fret). Grading is position-free, but the
-  // window keeps the board readable and scroll-free.
-  const focusFret = anchor ?? 5
-  const windowSpan = stage === 'find' ? 6 : 4
-  const loFret = Math.max(0, Math.min(focusFret - 1, MAX_FRET - windowSpan))
-  const hiFret = loFret + windowSpan
-
-  const buildMarkers = (): Marker[] => {
-    const isDone = (s: number, f: number) => done.some(d => d.string === s && d.fret === f)
-
-    const markers: Marker[] = done.map(pos => ({
-      string: pos.string,
-      fret: pos.fret,
-      kind: 'done',
-      label: DEGREE_LABEL[pos.degree],
-    }))
-
-    // guided/anchor reveal the 7 as the starting reference.
-    if (stage !== 'find' && anchor !== null) {
-      const startPos = expectedPosition(quality, anchor, 7)
-      if (!isDone(startPos.string, startPos.fret)) {
-        markers.push({ ...startPos, kind: 'start', label: DEGREE_LABEL[7] })
-      }
-    }
-
-    // guided: highlight every spot in view where the CURRENT degree can go,
-    // since any correct chord-tone position is accepted.
-    if (stage === 'guided' && phase === 'answering' && stepIndex < TAP_ORDER.length) {
-      const wantPc = degreePc(quality, targetRootPc, nextDegree)
-      for (let s = 0; s < 6; s++) {
-        for (let f = loFret; f <= hiFret; f++) {
-          if (pitchClassAt(s, f) === wantPc && !isDone(s, f)) {
-            markers.push({ string: s, fret: f, kind: 'hint', label: DEGREE_LABEL[nextDegree] })
-          }
-        }
-      }
-    }
-
-    if (wrong) {
-      const idx = markers.findIndex(m => m.string === wrong.string && m.fret === wrong.fret)
-      if (idx !== -1) markers.splice(idx, 1)
-      markers.push({ ...wrong, kind: 'wrong' })
-    }
-
-    return markers
+  function tap(position: Position) {
+    if (!question || complete || revealed) return
+    const key = `${position.string}:${position.fret}`
+    if (hits.some(item => `${item.string}:${item.fret}` === key) || wrong.some(item => `${item.string}:${item.fret}` === key)) return
+    if (question.stage === 'roots' && hits.some(item => item.string === position.string)) return
+    const pitchClass = pitchClassAt(position.string, position.fret)
+    const degree = ([1, 3, 5, 7] as Degree[]).find(item => pitchClass === degreePitchClass(question.rootPc, question.quality, item))
+    if (degree === undefined || !question.degrees.includes(degree)) { setWrong(current => [...current, position]); return }
+    // A repeated degree is still a chord tone. Keep the board quiet instead of
+    // calling a musically correct tap wrong; the learner only needs each degree once.
+    if (question.stage !== 'roots' && hits.some(item => item.degree === degree)) return
+    setHits(current => [...current, { ...position, degree }])
   }
 
-  const accuracy = session.total > 0 ? Math.round((session.correct / session.total) * 100) : null
-  const lifeStats = lifetime?.fretboard
-  const lifeAcc = lifeStats ? stageAccuracy(lifeStats) : null
-
-  const stageInfo = STAGES.find(s => s.id === stage)!
-  const targetLabel = `${chordLabel(quality, targetRootPc)} · 7→1→3→5`
-
-  if (!started) {
-    return (
-      <div className="bg-surface border border-border rounded-2xl p-5 space-y-5">
-        <div className="space-y-1.5">
-          <h2 className="text-base font-bold text-fg">코드톤 지판</h2>
-          <p className="text-sm text-muted">
-            지판 위에서 <span className="text-primary-bright font-medium">코드톤(1·3·5·7도)</span>의
-            위치를 짚어보세요. 7도는 짚는 음이 아니라 <span className="text-primary-bright font-medium">시작점</span>입니다 —
-            7도의 위치를 기준으로 나머지 코드톤이 이어집니다.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-xs text-muted font-medium">난이도</p>
-          <div className="grid grid-cols-3 gap-2">
-            {STAGES.map(st => (
-              <button
-                key={st.id}
-                onClick={() => setStage(st.id)}
-                className={`py-2.5 px-2 rounded-xl text-sm font-medium transition-colors text-center ${
-                  stage === st.id
-                    ? 'bg-primary text-bg glow-primary'
-                    : 'bg-surface-2 text-muted hover:bg-border hover:text-fg'
-                }`}
-              >
-                <div>{st.label}</div>
-                <div className="text-xs opacity-70 mt-0.5 font-mono">{st.hint}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-xs text-muted font-medium">퀄리티</p>
-          <div className="grid grid-cols-3 gap-2">
-            {QUAL_OPTIONS.map(opt => (
-              <button
-                key={opt.id}
-                onClick={() => setQualOption(opt.id)}
-                className={`py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  qualOption === opt.id
-                    ? 'bg-primary text-bg glow-primary'
-                    : 'bg-surface-2 text-muted hover:bg-border hover:text-fg'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={start}
-          className="w-full bg-primary hover:bg-primary-bright text-bg font-semibold py-3 rounded-xl glow-primary transition-all active:scale-[.99]"
-        >
-          시작하기
-        </button>
-      </div>
-    )
+  async function hearChord(item = question) {
+    if (!item || playing) return
+    setPlaying(true)
+    setError('')
+    try { await playChord(chordMidi(item.rootPc, item.quality), 1.4) }
+    catch { setError('코드를 재생하지 못했어요. 기기의 소리 설정을 확인하고 다시 눌러주세요.') }
+    finally { setPlaying(false) }
   }
 
-  return (
-    <div className="bg-surface border border-border rounded-2xl p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <span className="text-xs bg-surface-2 text-muted px-2 py-0.5 rounded-full">
-          {stageInfo.label} · {stageInfo.hint}
-        </span>
-        <div className="flex items-center gap-3">
-          {streak > 0 && <span className="text-xs text-primary-bright">🔥 {streak}</span>}
-          {accuracy !== null && (
-            <span className="text-xs text-muted">
-              {accuracy}% ({session.correct}/{session.total})
-            </span>
-          )}
-          <button
-            onClick={() => setStarted(false)}
-            className="text-xs text-faint hover:text-fg transition-colors"
-          >
-            종료
-          </button>
-        </div>
+  const revealedTones = useMemo(() => question && (complete || revealed) ? allTonePositions(question) : [], [question, complete, revealed])
+  const toneDegreeAt = (position: Position): Degree | undefined => revealedTones.find(item => item.position.string === position.string && item.position.fret === position.fret)?.degree
+  const hitDegreeAt = (position: Position): Degree | undefined => hits.find(item => item.string === position.string && item.fret === position.fret)?.degree
+
+  return <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7" aria-label="코드톤 지판">
+    {screen === 'setup' && <div className="space-y-7">
+      <header><h2 className="text-2xl font-bold tracking-tight">코드톤 지판</h2><p className="mt-2 text-sm leading-relaxed text-muted">그립 하나를 외우지 않고, 지판 전체에서<br />지금 코드에 필요한 음을 찾아요.</p></header>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="훈련 단계">
+        {STAGES.map((item, index) => <button key={item.id} aria-pressed={stage === item.id} className={`${button} min-h-28 text-left ${stage === item.id ? 'border-primary bg-primary/10' : ''}`} onClick={() => setStage(item.id)}><span className="text-xs text-muted">{index + 1}단계</span><span className="mt-1 block text-base">{item.label}</span><span className="mt-1 block text-xs leading-relaxed text-muted">{item.detail}</span></button>)}
       </div>
+      <p className="text-sm leading-relaxed text-muted">{currentStage.description}</p>
+      {stage !== 'roots' && <><fieldset className="space-y-3"><legend className="text-sm font-semibold">연습할 코드 성질</legend><div className="grid grid-cols-3 gap-2">{QUALITIES.map(quality => <button key={quality} aria-pressed={qualities.includes(quality)} className={`${button} ${qualities.includes(quality) ? 'border-primary bg-primary/10' : ''}`} onClick={() => toggleQuality(quality)}>{QUALITY_LABEL[quality]}</button>)}</div><p className="text-xs text-muted">선택한 성질 안에서 문제가 섞여 나와요.</p></fieldset><div className="border-y border-border py-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-medium">예시: C{QUALITY_LABEL[qualities[0]]}</p><p className="mt-1 text-sm text-muted">코드의 울림을 먼저 들어보세요.</p></div><button className={button} disabled={playing} onClick={() => void hearChord({ rootPc: 0, quality: qualities[0], stage, degrees: [] })}>코드 듣기</button></div></div></>}
+      <button className={`${primary} w-full`} onClick={() => start()}>8문제 시작하기</button>
+      {records.length > 0 && <p className="text-xs text-muted">최근 완료: {STAGES.find(item => item.id === records[0].stage)?.label} · {records[0].correct}/8</p>}
+    </div>}
 
-      <div className="text-center py-2 space-y-1">
-        <p className="text-base font-medium text-fg">{targetLabel}</p>
-        {phase === 'answering' && (
-          <p className="text-sm text-muted">
-            {stage === 'find' && anchor === null
-              ? '루트는 A현에서 · 7도를 먼저 찾으세요'
-              : `다음: ${DEGREE_LABEL[nextDegree]}도`}
-          </p>
-        )}
-      </div>
+    {screen === 'session' && question && <div className="space-y-5">
+      <div className="flex items-center justify-between gap-3"><p className="text-sm text-muted">{review ? '오답 복습' : currentStage.label} · {results.length + 1}/{questions.length}</p><button className="text-sm text-muted underline underline-offset-4" onClick={() => setScreen('setup')}>끝내기</button></div>
+      <progress className="h-1.5 w-full accent-primary" value={results.length} max={questions.length} aria-label="완료한 문제" />
+      <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-3xl font-semibold tracking-tight">{question.stage === 'roots' ? fifthCircleRootName(question.rootPc) : chordName(question.rootPc, question.quality)}</h2><p className="mt-1 text-sm text-muted">{complete ? '코드톤을 모두 찾았어요.' : question.stage === 'roots' ? '5도권 순서예요. 여섯 줄에서 루트를 하나씩 찾아보세요.' : '코드톤을 원하는 순서로 모두 찾아보세요.'}</p></div>{question.stage !== 'roots' && <button className={button} disabled={playing} onClick={() => void hearChord()}>코드 듣기</button>}</div>
+      <div className="flex gap-2" aria-label="찾아야 할 코드톤">{question.degrees.map((degree, index) => <span key={`${degree}-${index}`} className={`flex h-10 w-10 items-center justify-center rounded-full border font-mono font-semibold ${question.stage === 'roots' ? index < hits.length : hits.some(hit => hit.degree === degree) ? 'border-success bg-success/10 text-success-bright' : 'border-border text-muted'}`}>{DEGREE_TEXT[degree]}</span>)}</div>
+      <FretboardGrid hits={hits} wrong={wrong} revealed={complete || revealed} toneDegreeAt={toneDegreeAt} hitDegreeAt={hitDegreeAt} onTap={tap} disabled={complete || revealed} />
+      {wrong.length > 0 && !complete && <p role="status" className="text-sm text-danger-bright">빨간 점은 코드톤이 아니에요. 다음 음을 계속 찾아보세요.</p>}
+      {!complete && <button className="w-full py-2 text-sm text-muted underline underline-offset-4" onClick={() => setRevealed(true)}>정답 위치 보기</button>}
+      {(complete || revealed) && <div className="space-y-4 border-t border-border pt-5"><div role="status"><p className={`font-semibold ${complete && wrong.length === 0 ? 'text-success-bright' : 'text-fg'}`}>{complete ? wrong.length === 0 ? '정확하게 찾았어요.' : '위치를 모두 찾았어요.' : '전체 코드톤을 표시했어요.'}</p><p className="mt-1 text-sm leading-relaxed text-muted">루트는 청록, 찾은 음은 호박, 나머지 코드톤은 윤곽선으로 표시해요.</p></div>{complete && <button className={`${primary} w-full`} onClick={next}>{results.length + 1 === questions.length ? '결과 보기' : '다음 문제'}</button>}</div>}
+    </div>}
 
-      {wrong && phase === 'answering' && (
-        <div className="bg-danger/10 border border-danger/40 rounded-xl px-4 py-2.5 text-sm text-danger-bright text-center">
-          ❌ 다시 짚어보세요.
-        </div>
-      )}
+    {screen === 'result' && <div className="space-y-6"><header><h2 className="text-xl font-semibold">{review ? '오답 복습을 마쳤어요' : '오늘의 지판 기록'}</h2><p className="mt-2 text-sm text-muted">{currentStage.label} · {qualities.map(quality => QUALITY_LABEL[quality]).join(', ')}</p></header><p className="text-5xl font-semibold tracking-tight">{correct}<span className="ml-2 text-xl font-normal text-muted">/ {results.length} 정답</span></p><p className="text-sm leading-relaxed text-muted">{review ? '복습 점수는 본 회차 기록에 합산하지 않아요.' : correct >= 6 ? '지판에서 코드톤을 잘 찾고 있어요. 다음 단계도 시도해 보세요.' : '틀린 문제를 다시 풀면서 루트와 3·7도의 위치를 연결해 보세요.'}</p>{results.some(result => !result.clean) && <button className={`${primary} w-full`} onClick={() => start(results.filter(result => !result.clean).map(result => result.question), true)}>틀린 {results.filter(result => !result.clean).length}문제 다시 풀기</button>}<div className="flex gap-2"><button className={`${button} flex-1`} onClick={() => start()}>같은 범위 8문제</button><button className={`${button} flex-1`} onClick={() => setScreen('setup')}>훈련 선택</button></div><p className="text-xs text-muted">{storageError ? '기기에 기록을 저장하지 못했어요. 이번 결과는 이 화면에서 확인할 수 있어요.' : review ? '복습 완료' : '완료 기록은 이 브라우저에 최근 20회까지 저장해요.'}</p></div>}
+    {error && <p role="alert" className="mt-4 text-sm text-danger-bright">{error}</p>}
+  </section>
+}
 
-      <Fretboard
-        markers={buildMarkers()}
-        loFret={loFret}
-        hiFret={hiFret}
-        onFretClick={handleClick}
-        disabled={phase !== 'answering'}
-      />
+function FretboardGrid({ hits, wrong, revealed, toneDegreeAt, hitDegreeAt, onTap, disabled }: { hits: Hit[]; wrong: Position[]; revealed: boolean; toneDegreeAt: (position: Position) => Degree | undefined; hitDegreeAt: (position: Position) => Degree | undefined; onTap: (position: Position) => void; disabled: boolean }) {
+  const frets = Array.from({ length: MAX_FRET }, (_, index) => index + 1)
+  const positions = [0, ...frets]
+  return <div className="w-full rounded-xl border border-border bg-bg p-1.5 sm:p-3"><div className="relative w-full"><FretInlays /><div className="relative z-10 grid grid-cols-[repeat(13,minmax(0,1fr))] text-center text-[10px] text-faint sm:text-xs"><span aria-hidden />{frets.map(fret => <span key={fret}>{fret}</span>)}</div><div className="relative z-10 mt-1 space-y-0.5">{STRING_ORDER.map((string, stringIndex) => <div key={string} className="relative grid grid-cols-[repeat(13,minmax(0,1fr))] items-center"><span aria-hidden className={`pointer-events-none absolute inset-x-0 top-1/2 z-0 -translate-y-1/2 bg-muted/70 ${STRING_LINE_WIDTH[stringIndex]}`} />{positions.map(fret => { const position = { string, fret }; const key = `${string}:${fret}`; const isHit = hits.some(item => `${item.string}:${item.fret}` === key); const isWrong = wrong.some(item => `${item.string}:${item.fret}` === key); const tone = revealed ? toneDegreeAt(position) : undefined; const hitDegree = hitDegreeAt(position); const root = (tone ?? hitDegree) === 1; return <button key={key} aria-label={`${6 - string}번 줄 ${fret === 0 ? '개방현' : `${fret}프렛`}`} disabled={disabled || isHit || isWrong} onClick={() => onTap(position)} className={`relative z-10 flex h-8 min-w-0 items-center justify-center border-l border-border/70 text-xs sm:h-11 focus-visible:outline-2 focus-visible:outline-primary ${fret === 0 ? 'border-l-2 border-l-muted/70' : ''} ${isWrong ? 'bg-danger/20 text-danger-bright' : isHit ? 'bg-success/20 text-success-bright' : root ? 'bg-primary/20 text-primary-bright' : tone ? 'text-muted' : 'text-faint hover:bg-surface-2 hover:text-fg'}`}>{(isHit || isWrong || tone !== undefined) ? <span className={`flex h-5 min-w-5 items-center justify-center rounded-full border px-0.5 font-mono text-[10px] font-semibold sm:h-7 sm:min-w-7 sm:px-1 sm:text-xs ${isWrong ? 'border-danger bg-danger text-bg' : isHit ? 'border-success bg-success text-bg' : root ? 'border-primary bg-primary text-bg' : 'border-border text-muted'}`}>{isWrong ? '×' : DEGREE_TEXT[(tone ?? hitDegree)!]}</span> : null}</button> })}</div>)}</div></div></div>
+}
 
-      {phase === 'feedback' && (
-        <div className="space-y-3">
-          <div
-            className={`rounded-xl p-4 space-y-1 animate-reveal ${
-              clean
-                ? 'bg-success/10 border border-success/40 glow-success'
-                : 'bg-danger/10 border border-danger/40'
-            }`}
-          >
-            <p className={`font-semibold ${clean ? 'text-success-bright' : 'text-danger-bright'}`}>
-              {clean ? '✅ 정답!' : `완료: ${targetLabel}`}
-            </p>
-          </div>
-          <button
-            onClick={askNext}
-            className="w-full bg-primary hover:bg-primary-bright text-bg font-semibold py-2.5 rounded-xl glow-primary transition-all active:scale-[.99]"
-          >
-            다음 →
-          </button>
-        </div>
-      )}
-
-      {lifeAcc !== null && (
-        <p className="text-xs text-faint text-center">
-          누적 {lifeAcc}% · 최고 연속 {lifeStats!.bestStreak}
-        </p>
-      )}
-    </div>
-  )
+function FretInlays() {
+  const center = (fret: number) => `${((fret + 0.5) / 13) * 100}%`
+  return <div aria-hidden className="pointer-events-none absolute inset-x-0 top-1/2 z-0 -translate-y-1/2 opacity-45"><>{[3, 5, 7, 9].map(fret => <i key={fret} className="absolute h-2 w-2 -translate-x-1/2 rounded-full bg-faint" style={{ left: center(fret) }} />)}<span className="absolute flex -translate-x-1/2 gap-1" style={{ left: center(12) }}><i className="h-2 w-2 rounded-full bg-faint" /><i className="h-2 w-2 rounded-full bg-faint" /></span></></div>
 }

@@ -49,21 +49,23 @@ function shuffle<T>(arr: T[]): T[] {
 // ─── Level 1: Flat/Sharp Order ────────────────────────────────────────────
 
 function makeFlatOrderQ(): TutorialQuestion {
+  const answer = FLAT_ORDER.join(' ')
   return {
     levelId: 1, questionType: 'flatOrder',
-    text: 'Flat이 붙는 순서대로 입력하세요. (예: Bb Eb Ab Db)',
-    hint: 'Bb → Eb → Ab → Db 순서로 누적됩니다.',
-    explanation: `Flat key에서 flat은 Bb → Eb → Ab → Db 순서로 붙습니다.\n정답: Bb Eb Ab Db`,
+    text: `Flat이 붙는 순서대로 7개 모두 입력하세요. (예: ${SHARP_ORDER.join(' ')}처럼 7개)`,
+    hint: `${FLAT_ORDER.join(' → ')} 순서로 누적됩니다. (앞 4개 = BEAD)`,
+    explanation: `Flat은 ${FLAT_ORDER.join(' → ')} 순서로 붙습니다.\n정답: ${answer}`,
     answerList: [...FLAT_ORDER],
   }
 }
 
 function makeSharpOrderQ(): TutorialQuestion {
+  const answer = SHARP_ORDER.join(' ')
   return {
     levelId: 1, questionType: 'sharpOrder',
-    text: 'Sharp이 붙는 순서대로 입력하세요. (예: F# C# G# D#)',
-    hint: 'F# → C# → G# → D# 순서로 누적됩니다.',
-    explanation: `Sharp key에서 sharp은 F# → C# → G# → D# 순서로 붙습니다.\n정답: F# C# G# D#`,
+    text: 'Sharp이 붙는 순서대로 7개 모두 입력하세요. (예: F# C# G# D# A# E# B#)',
+    hint: `${SHARP_ORDER.join(' → ')} 순서로 누적됩니다. (Father Charles Goes Down And Ends Battle)`,
+    explanation: `Sharp은 ${SHARP_ORDER.join(' → ')} 순서로 붙습니다.\n정답: ${answer}`,
     answerList: [...SHARP_ORDER],
   }
 }
@@ -72,7 +74,7 @@ function makeOrderPositionQ(type: 'flat' | 'sharp', position: number): TutorialQ
   const order = type === 'flat' ? FLAT_ORDER : SHARP_ORDER
   const label = type === 'flat' ? 'flat' : 'sharp'
   const answer = order[position - 1]
-  const ordinals = ['첫 번째', '두 번째', '세 번째', '네 번째']
+  const ordinals = ['첫 번째', '두 번째', '세 번째', '네 번째', '다섯 번째', '여섯 번째', '일곱 번째']
   return {
     levelId: 1, questionType: 'orderPosition',
     text: `${label} 순서에서 ${ordinals[position - 1]} 음은 무엇인가요?`,
@@ -268,8 +270,8 @@ function makeChordToNumericQ(key: string, progression: number[]): TutorialQuesti
 
 function buildLevel1Qs(): TutorialQuestion[] {
   const positions = shuffle<[('flat' | 'sharp'), number]>([
-    ['flat', 1], ['flat', 2], ['flat', 3], ['flat', 4],
-    ['sharp', 1], ['sharp', 2], ['sharp', 3], ['sharp', 4],
+    ['flat', 1], ['flat', 2], ['flat', 3], ['flat', 4], ['flat', 5], ['flat', 6], ['flat', 7],
+    ['sharp', 1], ['sharp', 2], ['sharp', 3], ['sharp', 4], ['sharp', 5], ['sharp', 6], ['sharp', 7],
   ])
   return [
     makeFlatOrderQ(),

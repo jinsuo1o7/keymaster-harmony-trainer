@@ -1,4 +1,5 @@
 'use client'
+import { Fragment } from 'react'
 import type { TutorialProgress } from '@/src/types/quiz'
 import { TUTORIAL_LESSONS } from '@/src/data/tutorialLessons'
 import { isLevelUnlocked, isLevelCompleted } from '@/src/utils/tutorialUtils'
@@ -8,20 +9,28 @@ interface Props {
   onSelectLevel: (id: number) => void
 }
 
+// Phase headers shown before the first lesson of each group (matches the
+// practice tab's 기초/중급/고급 ladder).
+const GROUP_STARTS: Record<number, string> = {
+  1: '기초 · 음과 조표',
+  5: '중급 · 코드 만들기',
+  7: '고급 · 진행 분석·응용',
+}
+
 export default function TutorialHome({ progress, onSelectLevel }: Props) {
   return (
     <div className="space-y-4">
       {/* Intro */}
-      <div className="bg-gray-800 rounded-2xl p-4 space-y-2">
-        <h2 className="text-base font-semibold text-white">학습 로드맵</h2>
-        <p className="text-sm text-gray-400 leading-relaxed">
+      <div className="bg-surface border border-border rounded-2xl p-4 space-y-2">
+        <h2 className="text-base font-semibold text-fg">학습 로드맵</h2>
+        <p className="text-sm text-muted leading-relaxed">
           순서대로 따라가면 어떤 major key에서도<br />
-          <span className="text-indigo-300 font-medium">Key + 도수 = 음 → 음 + 타입 = 코드</span>를<br />
+          <span className="text-primary-bright font-medium">Key + 도수 = 음 → 음 + 타입 = 코드</span>를<br />
           자동으로 떠올릴 수 있게 됩니다.
         </p>
         {progress.completed && (
-          <div className="bg-green-950 border border-green-700 rounded-xl p-3 text-sm text-green-300 text-center font-medium">
-            🎉 튜토리얼 완료! 이제 퀴즈 모드에 도전해보세요.
+          <div className="bg-success/10 border border-success/40 rounded-xl p-3 text-sm text-success-bright text-center font-medium glow-success">
+            🎉 튜토리얼 완료! 이제 연습 탭에서 실력을 다져보세요.
           </div>
         )}
       </div>
@@ -35,28 +44,33 @@ export default function TutorialHome({ progress, onSelectLevel }: Props) {
           const bestScore = progress.scores[lesson.id] ?? null
 
           return (
+            <Fragment key={lesson.id}>
+              {GROUP_STARTS[lesson.id] && (
+                <p className="text-[11px] text-faint font-semibold uppercase tracking-wider pt-2 first:pt-0">
+                  {GROUP_STARTS[lesson.id]}
+                </p>
+              )}
             <button
-              key={lesson.id}
               onClick={() => unlocked && onSelectLevel(lesson.id)}
               disabled={!unlocked}
               className={`w-full text-left rounded-2xl p-4 transition-colors ${
                 !unlocked
-                  ? 'bg-gray-800 opacity-50 cursor-not-allowed'
+                  ? 'bg-surface border border-border opacity-50 cursor-not-allowed'
                   : isCurrent
-                  ? 'bg-indigo-950 border border-indigo-600 hover:bg-indigo-900'
-                  : 'bg-gray-800 hover:bg-gray-700'
+                  ? 'bg-primary/10 border border-primary/50 hover:bg-primary/15'
+                  : 'bg-surface border border-border hover:bg-surface-2'
               }`}
             >
               <div className="flex items-center gap-3">
                 {/* Status icon */}
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
                   completed
-                    ? 'bg-green-700 text-green-100'
+                    ? 'bg-success text-bg'
                     : isCurrent
-                    ? 'bg-indigo-700 text-indigo-100'
+                    ? 'bg-primary text-bg'
                     : unlocked
-                    ? 'bg-gray-700 text-gray-300'
-                    : 'bg-gray-700 text-gray-600'
+                    ? 'bg-surface-2 text-muted'
+                    : 'bg-surface-2 text-faint'
                 }`}>
                   {completed ? '✓' : !unlocked ? '🔒' : lesson.id}
                 </div>
@@ -64,14 +78,14 @@ export default function TutorialHome({ progress, onSelectLevel }: Props) {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-sm font-semibold ${!unlocked ? 'text-gray-600' : 'text-white'}`}>
+                    <span className={`text-sm font-semibold ${!unlocked ? 'text-faint' : 'text-fg'}`}>
                       {lesson.title}
                     </span>
                     {isCurrent && (
-                      <span className="text-xs bg-indigo-700 text-indigo-200 px-1.5 py-0.5 rounded-full">진행중</span>
+                      <span className="text-xs bg-primary/20 text-primary-bright px-1.5 py-0.5 rounded-full">진행중</span>
                     )}
                   </div>
-                  <p className={`text-xs mt-0.5 ${!unlocked ? 'text-gray-700' : 'text-gray-400'}`}>
+                  <p className={`text-xs mt-0.5 ${!unlocked ? 'text-faint' : 'text-muted'}`}>
                     {lesson.shortDescription}
                   </p>
                 </div>
@@ -81,32 +95,33 @@ export default function TutorialHome({ progress, onSelectLevel }: Props) {
                   <div className="text-right shrink-0">
                     {bestScore !== null ? (
                       <div className="text-xs">
-                        <span className={`font-bold ${bestScore >= lesson.passingScore ? 'text-green-400' : 'text-yellow-400'}`}>
+                        <span className={`font-bold ${bestScore >= lesson.passingScore ? 'text-success-bright' : 'text-muted'}`}>
                           {bestScore}
                         </span>
-                        <span className="text-gray-600">/{lesson.totalQuestions}</span>
+                        <span className="text-faint">/{lesson.totalQuestions}</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-600">미시작</span>
+                      <span className="text-xs text-faint">미시작</span>
                     )}
-                    <div className="text-xs text-gray-600">기준 {lesson.passingScore}개</div>
+                    <div className="text-xs text-faint">기준 {lesson.passingScore}개</div>
                   </div>
                 )}
               </div>
             </button>
+            </Fragment>
           )
         })}
       </div>
 
       {/* Overall progress */}
-      <div className="bg-gray-800 rounded-xl p-3">
-        <div className="flex justify-between text-xs text-gray-400 mb-2">
+      <div className="bg-surface border border-border rounded-xl p-3">
+        <div className="flex justify-between text-xs text-muted mb-2">
           <span>전체 진행</span>
           <span>{progress.completedLevels.length} / {TUTORIAL_LESSONS.length} 완료</span>
         </div>
-        <div className="w-full bg-gray-700 rounded-full h-2">
+        <div className="w-full bg-surface-2 rounded-full h-2">
           <div
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all"
+            className="bg-gradient-to-r from-primary to-primary-bright h-2 rounded-full transition-all"
             style={{ width: `${(progress.completedLevels.length / TUTORIAL_LESSONS.length) * 100}%` }}
           />
         </div>

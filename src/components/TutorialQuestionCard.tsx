@@ -53,40 +53,40 @@ export default function TutorialQuestionCard({
   const canPass = correctCount + remaining >= passingScore
 
   return (
-    <div className="bg-gray-800 rounded-2xl p-4 space-y-4">
+    <div className="bg-surface border border-border rounded-2xl p-4 space-y-4">
       {/* Progress header */}
-      <div className="flex items-center justify-between text-xs text-gray-400">
+      <div className="flex items-center justify-between text-xs text-muted">
         <span>문제 {questionNum} / {totalQuestions}</span>
         <span>
-          맞힌 수: <span className={`font-bold ${correctCount >= passingScore ? 'text-green-400' : 'text-white'}`}>{correctCount}</span>
+          맞힌 수: <span className={`font-bold ${correctCount >= passingScore ? 'text-success-bright' : 'text-fg'}`}>{correctCount}</span>
           {' / '}
-          <span className="text-yellow-400">{passingScore}개 이상 통과</span>
+          <span className="text-muted">{passingScore}개 이상 통과</span>
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-gray-700 rounded-full h-1.5">
+      <div className="w-full bg-surface-2 rounded-full h-1.5">
         <div
-          className="bg-purple-500 h-1.5 rounded-full transition-all"
+          className="bg-primary h-1.5 rounded-full transition-all"
           style={{ width: `${((questionNum - 1) / totalQuestions) * 100}%` }}
         />
       </div>
 
       {/* Question */}
-      <div className="text-base font-medium text-white leading-relaxed whitespace-pre-line">
+      <div className="text-base font-medium text-fg leading-relaxed whitespace-pre-line">
         {question.text}
       </div>
 
       {/* Key badge */}
       {question.key && (
-        <span className="inline-block text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-mono">
+        <span className="inline-block text-xs bg-surface-2 text-muted px-2 py-0.5 rounded-full font-mono">
           {question.key} key
         </span>
       )}
 
       {/* Hint */}
       {hintShown && (
-        <div className="bg-blue-950 border border-blue-700 rounded-xl p-3 text-sm text-blue-200 whitespace-pre-line">
+        <div className="bg-surface-2 border border-border rounded-xl p-3 text-sm text-muted whitespace-pre-line">
           💡 {question.hint}
         </div>
       )}
@@ -100,17 +100,17 @@ export default function TutorialQuestionCard({
           onChange={e => setUserInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleSubmit() }}
           autoFocus
-          className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full bg-surface-2 border border-border rounded-lg px-4 py-3 text-fg placeholder-faint focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
         />
       )}
 
       {/* Result feedback */}
       {answered && (
-        <div className={`rounded-xl p-3 space-y-2 ${result ? 'bg-green-950 border border-green-700' : 'bg-red-950 border border-red-700'}`}>
-          <div className={`font-semibold text-sm ${result ? 'text-green-400' : 'text-red-400'}`}>
+        <div className={`rounded-xl p-3 space-y-2 animate-reveal ${result ? 'bg-success/10 border border-success/40 glow-success' : 'bg-danger/10 border border-danger/40 glow-danger'}`}>
+          <div className={`font-semibold text-sm ${result ? 'text-success-bright' : 'text-danger-bright'}`}>
             {result ? '✓ 정답!' : '✗ 오답'}
           </div>
-          <p className="text-sm text-gray-300 whitespace-pre-line">{question.explanation}</p>
+          <p className="text-sm text-muted whitespace-pre-line">{question.explanation}</p>
         </div>
       )}
 
@@ -120,14 +120,14 @@ export default function TutorialQuestionCard({
           <>
             <button
               onClick={handleSubmit}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors"
+              className="flex-1 bg-primary hover:bg-primary-bright text-bg font-semibold py-2.5 px-4 rounded-xl glow-primary transition-all active:scale-[.98]"
             >
               제출
             </button>
             {!hintShown && (
               <button
                 onClick={() => setHintShown(true)}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium py-2.5 px-4 rounded-xl transition-colors"
+                className="bg-surface-2 hover:bg-border text-muted font-medium py-2.5 px-4 rounded-xl transition-colors"
               >
                 힌트
               </button>
@@ -137,7 +137,7 @@ export default function TutorialQuestionCard({
         {answered && (
           <button
             onClick={onNext}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors"
+            className="flex-1 bg-primary hover:bg-primary-bright text-bg font-semibold py-2.5 px-4 rounded-xl glow-primary transition-all active:scale-[.98]"
           >
             {questionNum < totalQuestions ? '다음 문제 →' : '결과 보기 →'}
           </button>
@@ -146,7 +146,7 @@ export default function TutorialQuestionCard({
 
       {/* Pass warning */}
       {!answered && !canPass && (
-        <p className="text-xs text-center text-red-400">
+        <p className="text-xs text-center text-danger-bright">
           남은 문제를 모두 맞혀도 통과 기준({passingScore}개)에 미달합니다.
         </p>
       )}

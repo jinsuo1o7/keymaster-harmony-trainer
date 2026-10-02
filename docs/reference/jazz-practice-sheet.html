@@ -1,0 +1,465 @@
+<title>재즈 기타 입문 연습 시트</title>
+<style>
+  :root {
+    --bg: #14161b;
+    --surface: #1b1e25;
+    --surface-2: #22262e;
+    --board: #23252c;
+    --border: #2f333d;
+    --fg: #ece7dd;
+    --muted: #9aa0ab;
+    --faint: #6a707b;
+    --brass: #d99a45;
+    --brass-bright: #f0b25c;
+    --brass-soft: rgba(217, 154, 69, 0.16);
+    --wire: #3a3f49;
+    --string: #454b56;
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-body: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "Consolas", "SFMono-Regular", Menlo, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #eceef1;
+      --surface: #ffffff;
+      --surface-2: #f4f5f7;
+      --board: #f6f2ea;
+      --border: #d8dce3;
+      --fg: #1b1e25;
+      --muted: #5a616c;
+      --faint: #969ca6;
+      --brass: #b3781f;
+      --brass-bright: #986312;
+      --brass-soft: rgba(179, 120, 31, 0.12);
+      --wire: #cfd4db;
+      --string: #b7bcc4;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161b; --surface: #1b1e25; --surface-2: #22262e; --board: #23252c;
+    --border: #2f333d; --fg: #ece7dd; --muted: #9aa0ab; --faint: #6a707b;
+    --brass: #d99a45; --brass-bright: #f0b25c; --brass-soft: rgba(217,154,69,0.16);
+    --wire: #3a3f49; --string: #454b56; color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #eceef1; --surface: #ffffff; --surface-2: #f4f5f7; --board: #f6f2ea;
+    --border: #d8dce3; --fg: #1b1e25; --muted: #5a616c; --faint: #969ca6;
+    --brass: #b3781f; --brass-bright: #986312; --brass-soft: rgba(179,120,31,0.12);
+    --wire: #cfd4db; --string: #b7bcc4; color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 40px) 80px; }
+
+  /* ---- Header ---- */
+  header { border-bottom: 1px solid var(--border); padding-bottom: 28px; margin-bottom: 40px; }
+  .eyebrow {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--brass);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-family: var(--font-body);
+    font-weight: 800;
+    font-size: clamp(1.7rem, 5vw, 2.5rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 14px;
+  }
+  .lede { color: var(--muted); font-size: 1.02rem; max-width: 62ch; margin: 0; }
+
+  .keyrow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .keychip {
+    display: inline-flex; align-items: baseline; gap: 7px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 7px 13px;
+  }
+  .keychip .k { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--brass); }
+  .keychip .rel { font-family: var(--font-mono); font-size: 0.78rem; color: var(--faint); }
+
+  /* ---- Sections ---- */
+  section { margin-bottom: 46px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .sec-num {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 1.05rem; color: var(--brass); flex: none;
+  }
+  h2 {
+    font-size: 1.28rem; font-weight: 800; letter-spacing: -0.01em;
+    margin: 0; text-wrap: balance;
+  }
+  .sec-sub { color: var(--muted); margin: 4px 0 22px; font-size: 0.96rem; }
+  h3 { font-size: 1rem; font-weight: 700; margin: 26px 0 10px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+  }
+  .callout {
+    border-left: 3px solid var(--brass);
+    background: var(--brass-soft);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px; margin: 16px 0;
+    font-size: 0.95rem;
+  }
+  .callout strong { color: var(--brass-bright); }
+
+  /* ---- Tables ---- */
+  .tscroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.94rem; min-width: 440px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); }
+  thead th {
+    background: var(--surface-2); color: var(--muted);
+    font-weight: 600; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.key { font-family: var(--font-display); font-weight: 700; color: var(--brass); font-size: 1.05rem; }
+  .chord { font-family: var(--font-mono); font-weight: 600; }
+  .rn { font-family: var(--font-display); font-style: italic; color: var(--muted); }
+  tbody tr:hover { background: var(--surface-2); }
+
+  /* ---- Fretboard diagrams ---- */
+  .fb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+  .fb-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .fb-title { font-weight: 700; font-size: 0.98rem; margin: 0 0 2px; }
+  .fb-cap { color: var(--muted); font-size: 0.85rem; margin: 0 0 14px; }
+  .fb-cap .accent { color: var(--brass); font-family: var(--font-mono); }
+  .fb-scroll { overflow-x: auto; }
+  svg.fretboard { display: block; }
+  svg.fretboard text { font-family: var(--font-mono); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 0.85rem; color: var(--muted); align-items: center; }
+  .legend .li { display: inline-flex; align-items: center; gap: 7px; }
+  .dot-key {
+    width: 17px; height: 17px; border-radius: 50%; flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+  }
+  .dk-root { background: var(--brass); color: var(--bg); }
+  .dk-guide { background: transparent; border: 2px solid var(--brass); color: var(--brass); }
+  .dk-tone { background: transparent; border: 1.5px solid var(--string); color: var(--muted); }
+
+  /* ---- Checklist ---- */
+  ul.plain { margin: 0; padding: 0; list-style: none; }
+  ul.plain li { padding: 4px 0 4px 20px; position: relative; color: var(--muted); font-size: 0.95rem; }
+  ul.plain li::before {
+    content: ""; position: absolute; left: 2px; top: 12px;
+    width: 6px; height: 6px; border-radius: 50%; background: var(--brass);
+  }
+  ul.plain li b { color: var(--fg); font-weight: 700; }
+
+  .check {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .check:hover { border-color: var(--brass); }
+  .check input { display: none; }
+  .box {
+    flex: none; width: 20px; height: 20px; border-radius: 6px;
+    border: 2px solid var(--string); margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .box svg { width: 12px; height: 12px; opacity: 0; transition: opacity 0.15s; }
+  .check input:checked ~ .box { background: var(--brass); border-color: var(--brass); }
+  .check input:checked ~ .box svg { opacity: 1; }
+  .check .ctxt { font-size: 0.96rem; }
+  .check input:checked ~ .ctxt { color: var(--faint); text-decoration: line-through; }
+  .check .ctxt b { color: var(--fg); font-weight: 700; }
+  .check input:checked ~ .ctxt b { color: var(--faint); }
+
+  footer { border-top: 1px solid var(--border); padding-top: 22px; margin-top: 8px; color: var(--faint); font-size: 0.85rem; }
+
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Jazz Guitar · 다음 주 솔로 대비</p>
+    <h1>재즈 기타 입문 연습 시트</h1>
+    <p class="lede">
+      재즈 스탠다드는 팝·록과 반대로 <b>플랫 키가 지배적</b>입니다. 관악기·보컬 편의로 쓰인 곡이 많기 때문이죠.
+      아래는 CAGED · 루트 스트링 · 스케일 · ii&ndash;V&ndash;I · 코드톤을 하나로 엮은 최소 생존 루트맵입니다.
+    </p>
+    <div class="keyrow">
+      <span class="keychip"><span class="k">C</span><span class="rel">rel. Am</span></span>
+      <span class="keychip"><span class="k">F</span><span class="rel">rel. Dm</span></span>
+      <span class="keychip"><span class="k">B♭</span><span class="rel">rel. Gm</span></span>
+      <span class="keychip"><span class="k">E♭</span><span class="rel">rel. Cm</span></span>
+      <span class="keychip"><span class="k">G</span><span class="rel">보너스</span></span>
+    </div>
+  </header>
+
+  <!-- 1. 우선순위 키 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>우선순위 키 &mdash; 왜 플랫인가</h2></div>
+    <p class="sec-sub">리얼북 등장 빈도순. 메이저와 렐러티브 마이너를 한 세트로 익히면 암기량이 절반이 됩니다.</p>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>우선</th><th>메이저</th><th>렐러티브 m</th><th>조표</th><th>대표 스탠다드</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="key">C</td><td class="chord">Am</td><td>0</td><td>Blue Bossa(Cm), 블루스</td></tr>
+          <tr><td>2</td><td class="key">F</td><td class="chord">Dm</td><td>♭1</td><td>Satin Doll, ATTYA 구간</td></tr>
+          <tr><td>3</td><td class="key">B♭</td><td class="chord">Gm</td><td>♭2</td><td>Tenor Madness, Now's the Time</td></tr>
+          <tr><td>4</td><td class="key">E♭</td><td class="chord">Cm</td><td>♭3</td><td>Autumn Leaves, A Train</td></tr>
+          <tr><td>5</td><td class="key">G</td><td class="chord">Em</td><td>♯1</td><td>보컬 곡 다수</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <strong>최우선 = C · F · B♭ · E♭.</strong> 이 네 키가 스탠다드의 큰 비중을 커버하고,
+      ii&ndash;V&ndash;I 패턴이 반복돼 전이 학습이 잘 됩니다. 마이너는 렐러티브 관계라 스케일 음이 같아 별도 부담이 없습니다.
+    </div>
+  </section>
+
+  <!-- 2. 스케일 포지션 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>스케일 &mdash; 루트 2줄만</h2></div>
+    <p class="sec-sub">
+      12키를 따로 외우지 않습니다. <b>6번줄 루트 포지션 1개 + 5번줄 루트 포지션 1개</b>만 완성하면,
+      슬라이드만으로 어느 키든 만들 수 있어요. CAGED 5모양 완성은 그 다음 단계.
+    </p>
+    <div class="fb-grid">
+      <div class="fb-card">
+        <p class="fb-title">6번줄 루트 &mdash; C 메이저</p>
+        <p class="fb-cap">루트가 <span class="accent">6번줄 8프렛(C)</span>. E-shape 계열 박스. 루트를 옮기면 곧 다른 키.</p>
+        <div class="fb-scroll" id="fb-scale6"></div>
+      </div>
+      <div class="fb-card">
+        <p class="fb-title">5번줄 루트 &mdash; F 메이저</p>
+        <p class="fb-cap">루트가 <span class="accent">5번줄 8프렛(F)</span>. A/C-shape 계열 박스. 6번줄 셰이프와 짝으로 지판을 덮습니다.</p>
+        <div class="fb-scroll" id="fb-scale5"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="li"><span class="dot-key dk-root">1</span> 루트</span>
+      <span class="li"><span class="dot-key dk-guide">3</span> 가이드 톤 (3·7도)</span>
+      <span class="li"><span class="dot-key dk-tone">5</span> 나머지 스케일 음</span>
+      <span class="li" style="color:var(--faint)">낮은 E줄이 아래, 높은 E줄이 위</span>
+    </div>
+  </section>
+
+  <!-- 3. ii-V-I -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>ii&ndash;V&ndash;I &mdash; 화성의 뼈대</h2></div>
+    <p class="sec-sub">재즈 화성의 대부분은 ii&ndash;V&ndash;I 조각입니다. 네 키만 손에 붙이면 스탠다드 대부분이 익숙해집니다.</p>
+
+    <h3>메이저 ii&ndash;V&ndash;I</h3>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>키</th><th><span class="rn">ii</span> · m7</th><th><span class="rn">V</span> · 7</th><th><span class="rn">I</span> · maj7</th></tr></thead>
+        <tbody>
+          <tr><td class="key">C</td><td class="chord">Dm7</td><td class="chord">G7</td><td class="chord">Cmaj7</td></tr>
+          <tr><td class="key">F</td><td class="chord">Gm7</td><td class="chord">C7</td><td class="chord">Fmaj7</td></tr>
+          <tr><td class="key">B♭</td><td class="chord">Cm7</td><td class="chord">F7</td><td class="chord">B♭maj7</td></tr>
+          <tr><td class="key">E♭</td><td class="chord">Fm7</td><td class="chord">B♭7</td><td class="chord">E♭maj7</td></tr>
+          <tr><td class="key">G</td><td class="chord">Am7</td><td class="chord">D7</td><td class="chord">Gmaj7</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>마이너 ii&ndash;V&ndash;i</h3>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>키</th><th><span class="rn">ii</span> · m7♭5</th><th><span class="rn">V</span> · 7</th><th><span class="rn">i</span> · m7</th></tr></thead>
+        <tbody>
+          <tr><td class="key">Am</td><td class="chord">Bm7♭5</td><td class="chord">E7</td><td class="chord">Am7</td></tr>
+          <tr><td class="key">Dm</td><td class="chord">Em7♭5</td><td class="chord">A7</td><td class="chord">Dm7</td></tr>
+          <tr><td class="key">Gm</td><td class="chord">Am7♭5</td><td class="chord">D7</td><td class="chord">Gm7</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      연습법: 한 키의 ii&ndash;V&ndash;I를 <strong>한 포지션 안에서</strong> 손을 크게 옮기지 않고 코드 이동 &rarr; 옆 키로.
+      C · F · B♭ · E♭를 순환하면 5도권 감각도 함께 붙습니다.
+    </div>
+  </section>
+
+  <!-- 4. 코드톤 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>코드톤 아르페지오 &mdash; R · 3 · 5 · 7</h2></div>
+    <p class="sec-sub">
+      솔로의 뼈대는 스케일이 아니라 <b>코드톤</b>입니다. 아래는 모두 <span style="font-family:var(--font-mono)">C</span> 루트(6번줄 8프렛) 기준 —
+      슬라이드하면 어느 키든 됩니다.
+    </p>
+    <div class="fb-grid">
+      <div class="fb-card">
+        <p class="fb-title">m7 아르페지오</p>
+        <p class="fb-cap">3도·7도가 <span class="accent">♭</span> (Cm7 = C E♭ G B♭)</p>
+        <div class="fb-scroll" id="fb-m7"></div>
+      </div>
+      <div class="fb-card">
+        <p class="fb-title">7 (도미넌트) 아르페지오</p>
+        <p class="fb-cap">7도만 <span class="accent">♭</span> (C7 = C E G B♭)</p>
+        <div class="fb-scroll" id="fb-dom7"></div>
+      </div>
+      <div class="fb-card">
+        <p class="fb-title">maj7 아르페지오</p>
+        <p class="fb-cap">그대로 (Cmaj7 = C E G B)</p>
+        <div class="fb-scroll" id="fb-maj7"></div>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>가이드 톤(3도·7도)이 가장 중요합니다.</strong> 3도는 메이저/마이너를, 7도는 코드 성격을 결정해요.
+      예) C 키 ii&ndash;V&ndash;I 가이드 톤 라인: Dm7의 <b>F</b>(♭3) &rarr; G7의 <b>F</b>(♭7) &rarr; Cmaj7의 <b>E</b>(3).
+      3·7도만 부드럽게 이으면 스케일을 안 쳐도 재즈처럼 들립니다.
+    </div>
+  </section>
+
+  <!-- 5. 최소 암기 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>다음 주 최소 암기 세트</h2></div>
+    <p class="sec-sub">연주할 곡의 키를 먼저 확인하세요. 모르면 C부터. 아래를 순서대로 체크하며 연습하세요. (체크 상태는 저장됩니다)</p>
+    <div id="checklist"></div>
+    <div class="callout">
+      우선순위 한 줄 요약: <strong>곡 키 하나 &rarr; 6번줄 루트 스케일 &rarr; ii&ndash;V&ndash;I 아르페지오 &rarr; 3·7도 가이드 톤.</strong>
+      입문 솔로는 &ldquo;맞는 음 + 좋은 타이밍&rdquo;이 &ldquo;많은 음&rdquo;을 이깁니다. 4분음표 코드톤 + 스윙 필부터.
+    </div>
+  </section>
+
+  <footer>
+    프렛 위치는 표준 튜닝(E&nbsp;A&nbsp;D&nbsp;G&nbsp;B&nbsp;E) 기준으로 계산되었습니다. 루트를 좌우로 옮기면 그대로 다른 키의 셰이프가 됩니다.
+  </footer>
+</div>
+
+<script>
+  const OPEN = { 6: 4, 5: 9, 4: 2, 3: 7, 2: 11, 1: 4 }; // chromatic index of open strings
+  const NOTE_IDX = { C:0, "C#":1, D:2, "Eb":3, E:4, F:5, "F#":6, G:7, "Ab":8, A:9, "Bb":10, B:11 };
+  const SCALE = { 0:'1', 2:'2', 4:'3', 5:'4', 7:'5', 9:'6', 11:'7' };
+  const ARP = {
+    m7:   { 0:'R', 3:'3', 7:'5', 10:'7' },
+    dom7: { 0:'R', 4:'3', 7:'5', 10:'7' },
+    maj7: { 0:'R', 4:'3', 7:'5', 11:'7' },
+  };
+
+  function kindOf(label) {
+    if (label === '1' || label === 'R') return 'root';
+    if (label === '3' || label === '7') return 'guide';
+    return 'tone';
+  }
+
+  function buildDots(root, map, win) {
+    const rootIdx = NOTE_IDX[root];
+    const dots = [];
+    for (let s = 6; s >= 1; s--) {
+      for (let f = win[0]; f <= win[1]; f++) {
+        const semi = (((OPEN[s] + f) - rootIdx) % 12 + 12) % 12;
+        if (map[semi] !== undefined) {
+          dots.push({ row: s - 1, cell: f - win[0], label: map[semi], kind: kindOf(map[semi]) });
+        }
+      }
+    }
+    return dots;
+  }
+
+  function renderFretboard(root, map, win) {
+    const cells = win[1] - win[0] + 1;
+    const L = 30, T = 16, FW = 46, SG = 26;
+    const W = L + cells * FW + 12;
+    const H = T + 5 * SG + 30;
+    const cx = i => L + i * FW + FW / 2;
+    const sy = row => T + row * SG;
+    const NS = "http://www.w3.org/2000/svg";
+    const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+    const svg = el('svg', { class: 'fretboard', viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img' });
+
+    // board background
+    svg.appendChild(el('rect', { x: L, y: T - 2, width: cells * FW, height: 5 * SG + 4, rx: 4, fill: 'var(--board)' }));
+
+    // inlay markers
+    for (let i = 0; i < cells; i++) {
+      const fret = win[0] + i;
+      const marks = ([3,5,7,9,15,17,21].includes(fret)) ? [2.5] : ((fret % 12 === 0 && fret !== 0) ? [1.5, 3.5] : []);
+      marks.forEach(r => svg.appendChild(el('circle', { cx: cx(i), cy: T + r * SG, r: 5, fill: 'var(--wire)', opacity: 0.55 })));
+    }
+    // fret wires
+    for (let i = 0; i <= cells; i++) {
+      svg.appendChild(el('line', { x1: L + i * FW, y1: T - 2, x2: L + i * FW, y2: T + 5 * SG + 2, stroke: 'var(--wire)', 'stroke-width': i === 0 ? 2 : 1 }));
+    }
+    // strings
+    const gauges = [1, 1.1, 1.3, 1.6, 1.9, 2.2]; // high E (row0) -> low E (row5)
+    for (let r = 0; r < 6; r++) {
+      svg.appendChild(el('line', { x1: L, y1: sy(r), x2: L + cells * FW, y2: sy(r), stroke: 'var(--string)', 'stroke-width': gauges[r] }));
+    }
+    // string labels
+    const names = ['e', 'B', 'G', 'D', 'A', 'E'];
+    for (let r = 0; r < 6; r++) {
+      const t = el('text', { x: L - 9, y: sy(r) + 3.5, 'text-anchor': 'end', 'font-size': 9, fill: 'var(--faint)' });
+      t.textContent = names[r]; svg.appendChild(t);
+    }
+    // fret numbers
+    for (let i = 0; i < cells; i++) {
+      const t = el('text', { x: cx(i), y: T + 5 * SG + 18, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--faint)' });
+      t.textContent = win[0] + i; svg.appendChild(t);
+    }
+    // note dots
+    const fills = {
+      root:  { fill: 'var(--brass)', stroke: 'var(--brass)', txt: 'var(--bg)' },
+      guide: { fill: 'transparent',  stroke: 'var(--brass)', txt: 'var(--brass-bright)' },
+      tone:  { fill: 'transparent',  stroke: 'var(--string)', txt: 'var(--muted)' },
+    };
+    buildDots(root, map, win).forEach(d => {
+      const c = fills[d.kind];
+      svg.appendChild(el('circle', { cx: cx(d.cell), cy: sy(d.row), r: 10, fill: c.fill, stroke: c.stroke, 'stroke-width': d.kind === 'tone' ? 1.5 : 2 }));
+      const t = el('text', { x: cx(d.cell), y: sy(d.row) + 3.5, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: c.txt });
+      t.textContent = d.label; svg.appendChild(t);
+    });
+    return svg;
+  }
+
+  function mount(id, root, map, win) {
+    const host = document.getElementById(id);
+    if (host) host.appendChild(renderFretboard(root, map, win));
+  }
+
+  mount('fb-scale6', 'C', SCALE, [6, 10]);
+  mount('fb-scale5', 'F', SCALE, [6, 10]);
+  mount('fb-m7',   'C', ARP.m7,   [6, 10]);
+  mount('fb-dom7', 'C', ARP.dom7, [6, 10]);
+  mount('fb-maj7', 'C', ARP.maj7, [6, 10]);
+
+  // ---- checklist ----
+  const TASKS = [
+    ['스케일 · 6번줄 루트', '곡 키의 메이저 스케일, 6번줄 루트 포지션 1개를 눈 감고도.'],
+    ['스케일 · 5번줄 루트', '같은 스케일을 5번줄 루트 포지션으로. 이 둘로 곡 전체 커버.'],
+    ['아르페지오 · ii–V–I', '곡의 ii–V–I 세 코드 R·3·5·7을 한 포지션 안에서.'],
+    ['가이드 톤 위치', '각 코드의 3도·7도를 눈 감고도 찾기.'],
+    ['가이드 톤 라인', '3·7도만 부드럽게 이어 솔로 골격 1개 완성.'],
+    ['리듬', '4분음표 코드톤만 정확히 + 스윙 필 유지.'],
+  ];
+  const CK = document.getElementById('checklist');
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('jazz-sheet-checks') || '{}'); } catch (e) {}
+  TASKS.forEach(([title, desc], i) => {
+    const label = document.createElement('label');
+    label.className = 'check';
+    const key = 'c' + i;
+    label.innerHTML =
+      `<input type="checkbox" ${saved[key] ? 'checked' : ''}>` +
+      `<span class="box"><svg viewBox="0 0 12 12" fill="none"><path d="M1.5 6.5L4.5 9.5L10.5 2.5" stroke="var(--bg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>` +
+      `<span class="ctxt"><b>${title}</b> — ${desc}</span>`;
+    const input = label.querySelector('input');
+    input.addEventListener('change', () => {
+      saved[key] = input.checked;
+      try { localStorage.setItem('jazz-sheet-checks', JSON.stringify(saved)); } catch (e) {}
+    });
+    CK.appendChild(label);
+  });
+</script>

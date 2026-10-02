@@ -4,27 +4,30 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
   {
     id: 1,
     title: '조표 순서 외우기',
-    shortDescription: 'Flat과 Sharp이 붙는 정해진 순서를 외웁니다.',
-    learningGoal: 'Flat 순서 Bb→Eb→Ab→Db와 Sharp 순서 F#→C#→G#→D#를 암기합니다.',
-    explanation: `Flat과 Sharp은 key마다 아무렇게나 붙는 것이 아니라 정해진 순서대로 누적됩니다.
+    shortDescription: 'Flat과 Sharp이 붙는 정해진 순서(7개까지)를 외웁니다.',
+    learningGoal: 'Flat 순서(Bb Eb Ab Db Gb Cb Fb)와 Sharp 순서(F# C# G# D# A# E# B#)를 암기합니다.',
+    explanation: `Flat과 Sharp은 key마다 아무렇게나 붙는 것이 아니라 정해진 순서대로 누적됩니다. 끝까지 가면 각각 7개입니다.
 
-Flat key는 다음 순서로 flat이 붙습니다.
-Bb → Eb → Ab → Db
+Flat 붙는 순서 (7개):
+Bb → Eb → Ab → Db → Gb → Cb → Fb
+암기: 앞 4개를 "BEAD"(비드)로 묶으면 쉬움
+
+Sharp 붙는 순서 (7개):
+F# → C# → G# → D# → A# → E# → B#
+암기: Father Charles Goes Down And Ends Battle
+
+※ Sharp 순서를 거꾸로 읽으면 그대로 Flat 순서가 됩니다.
 
 예)  F major = Bb
     Bb major = Bb, Eb
-    Eb major = Bb, Eb, Ab
-
-Sharp key는 다음 순서로 sharp이 붙습니다.
-F# → C# → G# → D#
-
-예)  G major = F#
-     D major = F#, C#
-     A major = F#, C#, G#`,
-    memoryFormula: 'Flat 순서:  Bb → Eb → Ab → Db\nSharp 순서: F# → C# → G# → D#',
+    G major = F#
+    A major = F#, C#, G#`,
+    memoryFormula:
+      'Flat:  Bb Eb Ab Db Gb Cb Fb   (앞 4개 = BEAD)\nSharp: F# C# G# D# A# E# B#\n       Father Charles Goes Down And Ends Battle',
     examples: [
       'Bb major → flat 2개 → Bb, Eb (flat 순서 앞 2개)',
       'A major → sharp 3개 → F#, C#, G# (sharp 순서 앞 3개)',
+      'Flat 순서 전체 = Sharp 순서(F# C# G# D# A# E# B#)를 거꾸로',
     ],
     totalQuestions: 5,
     passingScore: 4,
@@ -34,26 +37,39 @@ F# → C# → G# → D#
     id: 2,
     title: '각 key의 조표 외우기',
     shortDescription: '각 major key에 어떤 조표가 붙는지 외웁니다.',
-    learningGoal: '7개 major key의 조표를 암기합니다. Scale보다 조표 먼저!',
+    learningGoal: 'major key의 조표를 암기합니다. Scale보다 조표 먼저!',
     explanation: `이 단계에서는 scale이나 코드는 생각하지 말고,
 "이 key에는 뭐가 붙지?"만 외웁니다.
 
 C major = 조표 없음
 
-Flat key:
-  F major = Bb (1개)
- Bb major = Bb, Eb (2개)
- Eb major = Bb, Eb, Ab (3개)
+Flat key (♭ 개수):
+  F  = Bb                (1)
+  Bb = Bb Eb             (2)
+  Eb = Bb Eb Ab          (3)
+  Ab = Bb Eb Ab Db       (4)
+  Db = Bb Eb Ab Db Gb    (5)
 
-Sharp key:
-  G major = F# (1개)
-  D major = F#, C# (2개)
-  A major = F#, C#, G# (3개)`,
-    memoryFormula: 'F → Bb → Eb (flats 누적)\nG → D → A (sharps 누적)',
+Sharp key (♯ 개수):
+  G = F#                 (1)
+  D = F# C#              (2)
+  A = F# C# G#           (3)
+  E = F# C# G# D#        (4)
+  B = F# C# G# D# A#     (5)
+
+조표만 보고 key를 빨리 찾는 법:
+• Sharp key = 마지막 샤프의 반음 위
+  (예: 마지막 샤프 F# → G major)
+• Flat key = 끝에서 두 번째 플랫이 곧 key
+  (예: Bb Eb Ab → Eb major)
+  단, F major(♭ 1개)만 예외로 그냥 암기`,
+    memoryFormula:
+      'Flat:  F → Bb → Eb → Ab → Db (누적)\nSharp: G → D → A → E → B (누적)\n찾기: 마지막 샤프 반음↑ / 끝에서 2번째 플랫',
     examples: [
       'Bb major → flat 2개 → Bb, Eb',
       'D major → sharp 2개 → F#, C#',
-      '조표가 F#, C#, G#인 key → A major',
+      '조표가 F#, C#, G#인 key → 마지막 샤프 G#의 반음 위 → A major',
+      '조표가 Bb, Eb, Ab인 key → 끝에서 2번째 Eb → Eb major',
     ],
     totalQuestions: 8,
     passingScore: 6,
